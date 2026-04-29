@@ -1,0 +1,17 @@
+{
+    "name": "server",
+    "module": "index.ts",
+    "type": "module",
+    "private": true,
+    "devDependencies": {
+        "@types/bun": "latest"
+    },
+    "peerDependencies": {
+        "typescript": "^5"
+    },
+    "dependencies": {
+        "@who-can-make24/shared": "workspace:*",
+        "hono": "^4.12.15",
+        "socket.io": "^4.8.3"
+    }
+}
