@@ -1,37 +1,23 @@
-import { useEffect, useState } from "react";
-import { io } from "socket.io-client";
-
-const socket = io("http://localhost:3001");
+import { useRoomContext } from "./context/useRoomContext";
+import { Landing } from "./pages/Landing/Landing";
+import { WaitingRoom } from "./pages/WaitingRoom/WaitingRoom";
 
 function App() {
-    const [connected, setConnected] = useState(false);
-    const [socketId, setSocketId] = useState("");
+    const { currentRoom } = useRoomContext();
 
-    useEffect(() => {
-        socket.on("connect", () => {
-            setConnected(true);
-            setSocketId(socket.id ?? "");
-            console.log("Connected to server:", socket.id);
-        });
+    if (currentRoom?.status === "playing") {
+        return (
+            <div className="min-h-screen bg-blue-600 flex items-center justify-center text-white text-2xl">
+                Game Screen — Coming Soon
+            </div>
+        );
+    }
 
-        socket.on("disconnect", () => {
-            setConnected(false);
-            setSocketId("");
-        });
+    if (currentRoom?.status === "waiting") {
+        return <WaitingRoom />;
+    }
 
-        return () => {
-            socket.off("connect");
-            socket.off("disconnect");
-        };
-    }, []);
-
-    return (
-        <div style={{ padding: 32, fontFamily: "monospace" }}>
-            <h1>Who Can Make24?</h1>
-            <p>Status: {connected ? "🟢 Connected" : "🔴 Disconnected"}</p>
-            {connected && <p>Socket ID: {socketId}</p>}
-        </div>
-    );
+    return <Landing />;
 }
 
 export default App;

@@ -1,9 +1,10 @@
 import { Hono } from "hono";
 import { createServer } from "http";
+import { serve } from "@hono/node-server";
 import { Server } from "socket.io";
 import { GAME_CONSTANTS } from "@who-can-make24/shared";
+import { registerRoomHandlers } from "./rooms/roomHandlers";
 
-// Hono untuk REST API
 const app = new Hono();
 
 app.get("/", (c) => {
@@ -13,32 +14,20 @@ app.get("/", (c) => {
     });
 });
 
-// Buat HTTP server dari Hono
-const server = createServer((req, res) => {
-    app.fetch(new Request(`http://localhost${req.url}`)).then((honoRes) => {
-        res.writeHead(honoRes.status, Object.fromEntries(honoRes.headers));
-        honoRes.text().then((body) => res.end(body));
-    });
+// Buat HTTP server via @hono/node-server
+const server = serve({ fetch: app.fetch, port: 3001 }, () => {
+    console.log("Server running on http://localhost:3001");
 });
 
-// Socket.io duduk di atas HTTP server yang sama
-const io = new Server(server, {
+// Socket.io duduk di atas server yang sama
+const io = new Server(server as any, {
     cors: {
-        origin: "http://localhost:5173", // alamat client Vite
+        origin: "http://localhost:5173",
         methods: ["GET", "POST"],
     },
 });
 
-// Event pertama — test koneksi
 io.on("connection", (socket) => {
     console.log(`Player connected: ${socket.id}`);
-
-    socket.on("disconnect", () => {
-        console.log(`Player disconnected: ${socket.id}`);
-    });
-});
-
-// Jalankan server di port 3001
-server.listen(3001, () => {
-    console.log("Server running on http://localhost:3001");
+    registerRoomHandlers(io, socket);
 });

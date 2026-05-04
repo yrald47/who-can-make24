@@ -40,3 +40,5 @@ export const GAME_CONSTANTS = {
     DEFAULT_TIMER_SECONDS: 60,
     TARGET_NUMBER: 24,
 } as const;
+
+// export type RoomStatus = "waiting" | "playing" | "finished";
