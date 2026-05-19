@@ -95,3 +95,17 @@ export function getRoomByPlayerId(socketId: string): Room | undefined {
 export function getRoomById(roomId: string): Room | undefined {
     return rooms.get(roomId);
 }
+export function rejoinRoom(
+    roomId: string,
+    player: Player,
+): { success: true; room: Room } | { success: false; error: string } {
+    const room = rooms.get(roomId);
+    if (!room) return { success: false, error: "Room tidak ditemukan" };
+
+    // Hapus player lama dengan nama yang sama kalau ada
+    room.players = room.players.filter((p) => p.name !== player.name);
+
+    room.players.push(player);
+    playerRoomMap.set(player.id, room.id);
+    return { success: true, room };
+}

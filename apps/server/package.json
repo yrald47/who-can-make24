@@ -11,6 +11,7 @@
     },
     "dependencies": {
         "@hono/node-server": "^2.0.0",
+        "@upstash/redis": "^1.38.0",
         "@who-can-make24/shared": "workspace:*",
         "hono": "^4.12.15",
         "socket.io": "^4.8.3"

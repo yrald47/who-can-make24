@@ -23,7 +23,16 @@ export function WaitingRoom() {
         socket.emit("game:start");
     }
 
-    console.log('isHost:', isHost, 'me:', me, 'socket.id:', socket.id, 'players:', room.players.map(p => ({id: p.id, isHost: p.isHost})))
+    console.log(
+        "isHost:",
+        isHost,
+        "me:",
+        me,
+        "socket.id:",
+        socket.id,
+        "players:",
+        room.players.map((p) => ({ id: p.id, isHost: p.isHost })),
+    );
 
     return (
         <div className="min-h-screen bg-blue-600 flex flex-col">

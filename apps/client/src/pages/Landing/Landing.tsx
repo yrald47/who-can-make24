@@ -5,6 +5,8 @@ import { useSocket } from "../../hooks/useSocket";
 import { RoomCard } from "../../components/RoomCard/RoomCard";
 // import { WaitingRoom } from "../WaitingRoom/WaitingRoom";
 import { useRoomContext } from "../../context/useRoomContext";
+import { loadIdentity } from "../../lib/identity";
+import { Footer } from "../../components/Footer/Footer";
 
 const AVATARS = ["😀", "🤓", "😎", "🧐", "🥸", "🤩", "😏", "🤯"];
 const MODES: { value: Room["mode"]; label: string }[] = [
@@ -20,10 +22,20 @@ export function Landing() {
     const { rooms, error, createRoom, joinRoom } = useRoomContext();
     // const { rooms, currentRoom, error, createRoom, joinRoom } = useRoomContext();
 
-    const [name, setName] = useState(
-        "Player" + Math.floor(Math.random() * 9000 + 1000),
-    );
-    const [avatar, setAvatar] = useState("😀");
+    // const [name, setName] = useState(
+    //     "Player" + Math.floor(Math.random() * 9000 + 1000),
+    // );
+    const [name, setName] = useState(() => {
+        const identity = loadIdentity(); // perlu export dari RoomContext atau buat util terpisah
+        return (
+            identity?.name ?? "Player" + Math.floor(Math.random() * 9000 + 1000)
+        );
+    });
+    // const [avatar, setAvatar] = useState("😀");
+    const [avatar, setAvatar] = useState(() => {
+        const identity = loadIdentity();
+        return identity?.avatar ?? "😀";
+    });
     const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
 
     // Create room modal state
@@ -351,6 +363,7 @@ export function Landing() {
                     </div>
                 </div>
             )}
+            <Footer />
         </div>
     );
 }

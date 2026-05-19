@@ -1,3 +1,5 @@
+export * from './game'
+
 // Tipe Player
 export type Player = {
     id: string;
@@ -22,7 +24,7 @@ export type Room = {
 };
 
 // Tipe Game Phase
-export type GamePhase = "waiting" | "playing" | "pointing" | "proof" | "result";
+// export type GamePhase = "waiting" | "playing" | "pointing" | "proof" | "result";
 
 // Tipe Card (kartu remi)
 export type Suit = "spades" | "hearts" | "diamonds" | "clubs";
@@ -38,6 +40,8 @@ export const GAME_CONSTANTS = {
     MIN_PLAYERS_CASUAL: 3,
     MIN_PLAYERS_PVP: 2,
     DEFAULT_TIMER_SECONDS: 60,
+    POINTING_TIMER_SECONDS: 20,
+    PROOF_TIMER_SECONDS: 20,
     TARGET_NUMBER: 24,
 } as const;
 

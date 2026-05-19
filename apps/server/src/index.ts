@@ -4,6 +4,7 @@ import { serve } from "@hono/node-server";
 import { Server } from "socket.io";
 import { GAME_CONSTANTS } from "@who-can-make24/shared";
 import { registerRoomHandlers } from "./rooms/roomHandlers";
+import { registerGameHandlers } from "./game/gameHandlers";
 
 const app = new Hono();
 
@@ -15,14 +16,15 @@ app.get("/", (c) => {
 });
 
 // Buat HTTP server via @hono/node-server
-const server = serve({ fetch: app.fetch, port: 3001 }, () => {
+const server = serve({ fetch: app.fetch, port: 3001, hostname: "0.0.0.0" }, () => {
     console.log("Server running on http://localhost:3001");
 });
 
 // Socket.io duduk di atas server yang sama
 const io = new Server(server as any, {
     cors: {
-        origin: "http://localhost:5173",
+        // origin: "http://localhost:5173",
+        origin: "*",
         methods: ["GET", "POST"],
     },
 });
@@ -30,4 +32,5 @@ const io = new Server(server as any, {
 io.on("connection", (socket) => {
     console.log(`Player connected: ${socket.id}`);
     registerRoomHandlers(io, socket);
+    registerGameHandlers(io, socket);
 });
