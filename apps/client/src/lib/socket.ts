@@ -2,6 +2,9 @@ import { io } from "socket.io-client";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
+console.log("SERVER_URL:", SERVER_URL);
+console.log("All env:", import.meta.env);
+
 if (!SERVER_URL) {
     console.error("VITE_SERVER_URL is not set!");
 }

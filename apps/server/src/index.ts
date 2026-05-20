@@ -28,6 +28,9 @@ const io = new Server(httpServer, {
 
 // Hono handle HTTP requests
 httpServer.on("request", async (req, res) => {
+    // Skip kalau Socket.io sudah handle (path /socket.io/)
+    if (req.url?.startsWith("/socket.io")) return;
+
     const honoRes = await app.fetch(
         new Request(`http://localhost${req.url}`, {
             method: req.method,
