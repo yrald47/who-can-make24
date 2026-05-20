@@ -1,11 +1,12 @@
 import { io } from "socket.io-client";
 
-// export const socket = io("http://192.168.100.4:3001", {
-//     autoConnect: true,
-// });
+const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? "http://localhost:3001";
+if (!SERVER_URL) {
+    console.error("VITE_SERVER_URL is not set!");
+}
 
-export const socket = io(SERVER_URL, {
+export const socket = io(SERVER_URL ?? "http://localhost:3001", {
+    transports: ["websocket", "polling"],
     autoConnect: true,
 });

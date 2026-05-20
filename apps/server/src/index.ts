@@ -1,6 +1,5 @@
 import { Hono } from "hono";
 import { createServer } from "http";
-import { serve } from "@hono/node-server";
 import { Server } from "socket.io";
 import { GAME_CONSTANTS } from "@who-can-make24/shared";
 import { registerRoomHandlers } from "./rooms/roomHandlers";
@@ -15,22 +14,37 @@ app.get("/", (c) => {
     });
 });
 
-// Buat HTTP server via @hono/node-server
-const server = serve({ fetch: app.fetch, port: 3001, hostname: "0.0.0.0" }, () => {
-    console.log("Server running on http://localhost:3001");
-});
+// Native HTTP server
+const httpServer = createServer();
 
-// Socket.io duduk di atas server yang sama
-const io = new Server(server as any, {
+// Socket.io di atas HTTP server
+const io = new Server(httpServer, {
     cors: {
-        // origin: "http://localhost:5173",
         origin: "*",
         methods: ["GET", "POST"],
     },
+    transports: ["websocket", "polling"],
+});
+
+// Hono handle HTTP requests
+httpServer.on("request", async (req, res) => {
+    const honoRes = await app.fetch(
+        new Request(`http://localhost${req.url}`, {
+            method: req.method,
+            headers: req.headers as any,
+        }),
+    );
+    res.writeHead(honoRes.status, Object.fromEntries(honoRes.headers));
+    const body = await honoRes.text();
+    res.end(body);
 });
 
 io.on("connection", (socket) => {
     console.log(`Player connected: ${socket.id}`);
     registerRoomHandlers(io, socket);
     registerGameHandlers(io, socket);
+});
+
+httpServer.listen(3001, "0.0.0.0", () => {
+    console.log("Server running on http://localhost:3001");
 });
