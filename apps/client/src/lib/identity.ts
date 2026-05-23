@@ -5,14 +5,15 @@ export interface StoredIdentity {
     avatar: string;
     roomId: string | null;
     socketId?: string | null;
-}
+} 
 
 export function saveIdentity(
     name: string,
     avatar: string,
     roomId: string | null,
+    socketId?: string | null
 ) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ name, avatar, roomId }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ name, avatar, roomId, socketId }));
 }
 
 export function loadIdentity(): StoredIdentity | null {

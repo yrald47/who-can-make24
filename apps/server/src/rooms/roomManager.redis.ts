@@ -137,9 +137,16 @@ export async function rejoinRoom(
     if (!raw) return { success: false, error: "Room tidak ditemukan" };
 
     const room: Room = typeof raw === "string" ? JSON.parse(raw) : raw;
-
+    
+    console.log(
+        `players before filter: ${JSON.stringify(room.players.map((p) => p.id))}`,
+    );
     if (oldSocketId) {
         room.players = room.players.filter((p) => p.id !== oldSocketId);
+        console.log(
+            `players after filter: ${JSON.stringify(room.players.map((p) => p.id))}`,
+        );
+
         await redis.del(KEYS.playerRoom(oldSocketId));
     }
 

@@ -94,6 +94,12 @@ interface SurrenderVotePayload {
     total: number;
 }
 
+interface GameReconnectPayload {
+    gameState: GameState;
+    phase: GamePhase;
+    timer: number;
+    startTime: number;
+}
 // interface GameStartedPayload {
 //     room: unknown;
 // }
@@ -148,6 +154,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
             );
             setPhase("playing");
             setTimer(data.timer);
+        };
+
+        const onGameReconnect = (data: GameReconnectPayload) => {
+            console.log("game:reconnect received", data.phase);
+            setGameState(data.gameState);
+            setPhase(data.phase);
+            setTimer(data.timer);
+            setIsGameOver(false);
         };
 
         const onPhaseChanged = (data: PhaseChangedPayload) => {
@@ -336,6 +350,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
         socket.on("game:started", onGameStarted);
         socket.on("game:round-start", onRoundStart);
+        socket.on("game:reconnect", onGameReconnect);
         socket.on("game:phase-changed", onPhaseChanged);
         socket.on("game:timer", onTimer);
         socket.on("game:bell-pressed", onBellPressed);
@@ -350,6 +365,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         return () => {
             socket.off("game:started", onGameStarted);
             socket.off("game:round-start", onRoundStart);
+            socket.off("game:reconnect", onGameReconnect);
             socket.off("game:phase-changed", onPhaseChanged);
             socket.off("game:timer", onTimer);
             socket.off("game:bell-pressed", onBellPressed);

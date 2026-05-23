@@ -62,10 +62,27 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     const [error, setError] = useState<string | null>(null);
     const [savedIdentity] = useState(() => loadIdentity());
     const currentRoomRef = useRef<Room | null>(null);
+    // const [isReconnecting, setIsReconnecting] = useState(false);
+    const isReconnectingRef = useRef(false);
 
     useEffect(() => {
         currentRoomRef.current = currentRoom;
     }, [currentRoom]);
+
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === "visible" && !socket.connected) {
+                socket.connect();
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () =>
+            document.removeEventListener(
+                "visibilitychange",
+                handleVisibilityChange,
+            );
+    }, []);
 
 
     useEffect(() => {
@@ -86,37 +103,55 @@ export function RoomProvider({ children }: { children: ReactNode }) {
             // Coba reconnect kalau ada roomId tersimpan
             const identity = loadIdentity();
             if (identity?.roomId && identity.name && identity.avatar) {
+                // setIsReconnecting(true);
+                isReconnectingRef.current = true;
                 socket.emit("room:reconnect", {
                     roomId: identity.roomId,
                     name: identity.name,
                     avatar: identity.avatar,
                     oldSocketId: identity.socketId,
+                    isReconnect: true,
                 });
             }
         };
+        
         const onReconnectFailed = () => {
             clearRoomId();
         };
 
         const onRoomList = ({ rooms }: { rooms: Room[] }) => setRooms(rooms);
+        
         const onRoomCreated = ({ room }: { room: Room }) => {
             setCurrentRoom(room);
             // Simpan identity — name dan avatar dari room.players
             const me = room.players.find((p) => p.id === socket.id);
-            if (me) saveIdentity(me.name, me.avatar, room.id);
+            if (me) saveIdentity(me.name, me.avatar, room.id, socket.id);
         };
         // const onRoomJoined = ({ room }: { room: Room }) => setCurrentRoom(room);
         const onRoomJoined = ({ room }: { room: Room }) => {
             setCurrentRoom(room);
-            const me = room.players.find((p) => p.id === socket.id);
-            if (me) saveIdentity(me.name, me.avatar, room.id);
+            if(!isReconnectingRef.current) {
+                const me = room.players.find((p) => p.id === socket.id);
+                if (me) saveIdentity(me.name, me.avatar, room.id, socket.id);
+            }
+            isReconnectingRef.current = false;
         };
+        
         const onRoomUpdated = ({ room }: { room: Room }) => {
+            console.log("room:updated received", {
+                roomStatus: room.status,
+                mySocketId: socket.id,
+                players: room.players.map((p) => p.id),
+                stillInRoom: room.players.some((p) => p.id === socket.id),
+            });
             setRooms((prev) => prev.map((r) => (r.id === room.id ? room : r)));
             setCurrentRoom((prev) => {
                 if (!prev || prev.id !== room.id) return prev;
+
+                if (room.status === "playing") return room;
+
                 const stillInRoom = room.players.some(
-                    (p) => p.id === socket.id,
+                    p => p.id === socket.id
                 );
                 return stillInRoom ? room : null;
             });
@@ -181,6 +216,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
             if (!currentRoomRef.current) {
                 const identity = loadIdentity();
                 if (identity?.roomId && identity.name && identity.avatar) {
+                    isReconnectingRef.current = true;
                     socket.emit("room:reconnect", {
                         roomId: identity.roomId,
                         name: identity.name,

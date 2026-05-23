@@ -12,7 +12,7 @@ import {
     updateRoom,
 } from "./roomManager.redis";
 import { registerGameHandlers, startTimer } from "../game/gameHandlers";
-import { initGameState, deleteGameState } from "../game/gameManager";
+import { initGameState, deleteGameState, getGameState } from "../game/gameManager";
 
 export function registerRoomHandlers(io: Server, socket: Socket) {
     // Buat player object dari data yang dikirim client
@@ -74,37 +74,73 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
             roomId,
             name,
             avatar,
+            oldSocketId,
         }: {
             roomId: string;
             name: string;
             avatar: string;
+            oldSocketId?: string;
         }) => {
+            console.log(
+                `room:reconnect received - roomId: ${roomId}, name: ${name}, oldSocketId: ${oldSocketId}`,
+            );
             const room = await getRoomById(roomId);
+            console.log(
+                `room found: ${room?.id}, players: ${JSON.stringify(room?.players.map((p) => p.id))}`,
+            );
 
             if (!room) {
-                socket.emit("room:error", { message: "Room tidak ditemukan" });
                 socket.emit("room:reconnect-failed");
                 return;
             }
 
-            if (room.status === "playing") {
-                // Block reconnect saat game berlangsung
-                socket.emit("room:reconnect-failed");
-                return;
-            }
+            const oldPlayer = room.players.find((p) => p.id === oldSocketId);
+            const preservedIsHost = oldPlayer?.isHost ?? false;
 
+            const gameState = getGameState(roomId);
+            const preservedScore = gameState?.scores[oldSocketId ?? ""] ?? oldPlayer?.score ?? 0;
+            
+            // const preservedScore = oldPlayer?.score ?? 0;
             const player = makePlayer(name, avatar);
-            const result = await rejoinRoom(roomId, player);
+            player.score = preservedScore;
+            player.isHost = preservedIsHost;
+            const result = await rejoinRoom(roomId, player, oldSocketId);
 
             if (!result.success) {
-                socket.emit("room:error", { message: result.error });
                 socket.emit("room:reconnect-failed");
                 return;
+            }
+
+            if (gameState && oldSocketId) {
+                const oldScore = gameState.scores[oldSocketId] ?? 0;
+                gameState.scores[socket.id] = oldScore;
+                delete gameState.scores[oldSocketId];
+
+                gameState.bellPressers = gameState.bellPressers.map((id) =>
+                    id === oldSocketId ? socket.id : id,
+                );
+
+                gameState.candidates = gameState.candidates.map((id) =>
+                    id === oldSocketId ? socket.id : id,
+                );
             }
 
             socket.join(roomId);
             socket.emit("room:joined", { room: result.room });
             io.to(roomId).emit("room:updated", { room: result.room });
+
+            // Kalau game sedang berlangsung, kirim current game state
+            if (room.status === "playing" && gameState) {
+                // const gameState = getGameState(roomId);
+                if (gameState) {
+                    socket.emit("game:reconnect", {
+                        gameState,
+                        phase: gameState.phase,
+                        timer: gameState.timer,
+                        startTime: gameState.startTime,
+                    });
+                }
+            }
         },
     );
 
@@ -132,6 +168,7 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
         }
 
         room.status = "playing";
+        await updateRoom(room);
         console.log("rooms in socket:", [...socket.rooms]);
         // io.to(room.id).emit("game:started", { room });
         const playerIds = room.players.map((p) => p.id);
@@ -206,6 +243,7 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
         if (!player?.isHost) return;
 
         room.status = "waiting";
+        await updateRoom(room);
         deleteGameState(room.id);
         io.to(room.id).emit("game:lobby-returned", { room });
     });
@@ -221,27 +259,17 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
     socket.on("disconnect", async () => {
         console.log(`Disconnect handler called for ${socket.id}`);
         const currentRoom = await getRoomByPlayerId(socket.id);
-        console.log(`Room found for disconnecting player: ${currentRoom?.id}`)
-        const roomId = currentRoom?.id;
-        const result = await leaveRoom(socket.id);
-        console.log(`leaveRoom result: ${result ? 'room still exists' : 'room deleted or not found'}`)
+        console.log(`Room found for disconnecting player: ${currentRoom?.id}`);
 
-        if (result) {
-            const { room } = result;
-            socket.to(room.id).emit("room:updated", { room });
-            io.emit("room:list-update", { room });
-        } else if (roomId) {
-            deleteGameState(roomId);
-            io.emit("room:removed", { roomId });
+        if (!currentRoom) return;
+
+        // Tandai player sebagai disconnected tapi JANGAN hapus dari room
+        const player = currentRoom.players.find((p) => p.id === socket.id);
+        if (player) {
+            (player as any).disconnected = true;
+            await updateRoom(currentRoom);
+            io.to(currentRoom.id).emit("room:updated", { room: currentRoom });
+            io.emit("room:list-update", { room: currentRoom });
         }
-
-        // if (!result) return;
-
-        // const { room } = result;
-        // socket.to(room.id).emit("room:updated", { room });
-
-        // if (room.players.length === 0) {
-        //     deleteGameState(room.id);
-        // }
     });
 }
