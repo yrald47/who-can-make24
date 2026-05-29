@@ -32,12 +32,12 @@ export function RoomCard({ room, isSelected, onClick }: RoomCardProps) {
             onClick={!isFull ? onClick : undefined}
             className={`
         border rounded-xl p-4 transition-all cursor-pointer
-        ${isSelected ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-blue-300"}
+        ${isSelected ? "border-blue-500 bg-gradient-to-b from-amber-300 to-amber-500 text-amber-950" : "border-gray-200 hover:border-blue-300 hover:bg-game-accent"}
         ${isFull ? "opacity-50 cursor-not-allowed" : ""}
         `}
         >
             <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-sm text-gray-900 leading-height">
+                <span className="font-semibold text-sm leading-height">
                     {room.name}
                 </span>
                 <span

@@ -50,7 +50,7 @@ export function Game() {
 
 
     return (
-        <div className="min-h-screen bg-blue-600 flex flex-col">
+        <div className="min-h-screen flex flex-col">
             {/* {showRules && <RulesModal onClose={() => setShowRules(false)} />} */}
             {showRules && <RulesModal onClose={handleCloseRules} />}
             {/* Header */}

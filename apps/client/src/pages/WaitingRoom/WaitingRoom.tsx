@@ -35,7 +35,7 @@ export function WaitingRoom() {
     );
 
     return (
-        <div className="min-h-screen bg-blue-600 flex flex-col">
+        <div className="min-h-screen flex flex-col">
             {/* Header */}
             <div className="bg-blue-700 px-6 py-3 flex items-center justify-between">
                 <div>

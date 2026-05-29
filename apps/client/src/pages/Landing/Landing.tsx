@@ -1,9 +1,7 @@
 import { useState } from "react";
 import type { Room } from "@who-can-make24/shared";
 import { useSocket } from "../../hooks/useSocket";
-// import { useRooms } from "../../hooks/useRooms";
 import { RoomCard } from "../../components/RoomCard/RoomCard";
-// import { WaitingRoom } from "../WaitingRoom/WaitingRoom";
 import { useRoomContext } from "../../context/useRoomContext";
 import { loadIdentity } from "../../lib/identity";
 import { Footer } from "../../components/Footer/Footer";
@@ -15,30 +13,22 @@ const MODES: { value: Room["mode"]; label: string }[] = [
     { value: "battle-royale", label: "Battle Royale" },
 ];
 
-
 export function Landing() {
     const { connected } = useSocket();
-    const [showRoomSheet, setShowRoomSheet] = useState(false)
+    const [showRoomSheet, setShowRoomSheet] = useState(false);
     const { rooms, error, createRoom, joinRoom } = useRoomContext();
-    // const { rooms, currentRoom, error, createRoom, joinRoom } = useRoomContext();
 
-    // const [name, setName] = useState(
-    //     "Player" + Math.floor(Math.random() * 9000 + 1000),
-    // );
     const [name, setName] = useState(() => {
-        const identity = loadIdentity(); // perlu export dari RoomContext atau buat util terpisah
+        const identity = loadIdentity();
         return (
             identity?.name ?? "Player" + Math.floor(Math.random() * 9000 + 1000)
         );
     });
-    // const [avatar, setAvatar] = useState("😀");
     const [avatar, setAvatar] = useState(() => {
         const identity = loadIdentity();
         return identity?.avatar ?? "😀";
     });
     const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
-
-    // Create room modal state
     const [showCreate, setShowCreate] = useState(false);
     const [newRoomName, setNewRoomName] = useState("");
     const [newRoomMode, setNewRoomMode] = useState<Room["mode"]>("casual");
@@ -46,11 +36,9 @@ export function Landing() {
 
     function handleJumpIn() {
         if (!name.trim()) return;
-
         if (selectedRoom) {
             joinRoom(selectedRoom.id, name, avatar);
         } else {
-            // Random room — join room pertama yang available
             const available = rooms.find(
                 (r) =>
                     r.status === "waiting" && r.players.length < r.maxPlayers,
@@ -66,101 +54,192 @@ export function Landing() {
         setNewRoomName("");
     }
 
-    // Kalau sudah join room, tampilkan info room (waiting room nanti)
-    // if (currentRoom) {
-    //     console.log("Rendering WaitingRoom, currentRoom:", currentRoom);
-    //     return <WaitingRoom />;
-    // }
-
     return (
-        <div className="min-h-screen bg-blue-600 flex flex-col">
+        <div className="min-h-screen flex flex-col">
             {/* Header */}
-            <div className="bg-blue-700 px-6 py-3 flex items-center justify-between">
+            <header className="backdrop-blur-game-sm bg-game-bg/85 border-b border-game-border px-6 py-3 flex items-center justify-between">
                 <div>
-                    <h1 className="text-white font-bold text-xl">
-                        Who Can Make24?
+                    <h1 className="font-heading text-game-text text-2xl font-bold">
+                        WHO CAN MAKE<span className="text-game-cyan">24</span>?
                     </h1>
-                    <p className="text-blue-200 text-xs tracking-widest uppercase">
-                        Math · Strategy · Fun
+                    <p className="field-label mt-px opacity-60">
+                        › Real Players. Real Math. Real Battle.
                     </p>
                 </div>
                 <div
-                    className={`text-xs ${connected ? "text-green-300" : "text-red-300"}`}
+                    className={`flex items-center gap-2 text-xs font-medium ${connected ? "text-game-cyan" : "text-game-coral"}`}
                 >
-                    {connected ? "🟢 Connected" : "🔴 Disconnected"}
+                    <span
+                        className={`w-1.5 h-1.5 rounded-full ${connected ? "bg-game-cyan animate-pulse" : "bg-game-coral"}`}
+                    />
+                    {connected ? "Connected" : "Disconnected"}
                 </div>
-            </div>
+            </header>
 
             {/* Main */}
-            <div className="flex-1 flex items-center justify-center p-4">
-                <div className="bg-white rounded-2xl w-full max-w-4xl overflow-hidden shadow-xl">
-                    {/* Grid — dua kolom di desktop, satu kolom di mobile */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 min-h-[500px]">
+            <div className="flex-1 flex items-center justify-center p-4 md:p-8">
+                <div
+                    className="
+                    relative w-full max-w-4xl rounded-[4px]
+                    backdrop-blur-game bg-[rgba(18,22,30,0.82)]
+                    border border-game-border
+                    shadow-[0_0_0_1px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.03),0_20px_60px_rgba(0,0,0,0.6)]
+                    before:absolute before:top-0 before:right-0 before:w-4 before:h-4 before:z-10
+                    before:bg-[linear-gradient(225deg,rgba(13,17,23,0.95)_50%,transparent_50%)]
+                "
+                >
+                    <div className="grid grid-cols-1 md:grid-cols-2 min-h-[520px]">
                         {/* LEFT — Identity */}
-                        <div className="p-6 border-b md:border-b-0 md:border-r border-gray-100">
-                            <p className="text-xs font-medium text-blue-600 uppercase tracking-widest mb-4">
-                                Your Identity
-                            </p>
+                        <div className="p-6 flex flex-col gap-5 border-b border-game-border md:border-b-0 md:border-r md:border-game-border">
+                            <p className="section-label">Your Identity</p>
 
-                            <p className="text-xs text-gray-500 mb-2">
-                                Pick an avatar
-                            </p>
-                            <div className="flex flex-wrap gap-2 mb-4">
-                                {AVATARS.map((a) => (
-                                    <button
-                                        key={a}
-                                        onClick={() => setAvatar(a)}
-                                        className={`
-                    w-10 h-10 rounded-full text-xl flex items-center justify-center transition-all
-                    ${avatar === a ? "ring-2 ring-blue-500 ring-offset-1" : "hover:bg-gray-100"}`}
-                                    >
-                                        {a}
-                                    </button>
-                                ))}
+                            {/* Avatar */}
+                            <div>
+                                <p className="field-label mb-2">
+                                    Pick an avatar
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                    {AVATARS.map((a) => (
+                                        <button
+                                            key={a}
+                                            onClick={() => setAvatar(a)}
+                                            className={`
+                                                w-10 h-10 text-xl flex items-center justify-center rounded-[3px]
+                                                border transition-all duration-100
+                                                ${
+                                                    avatar === a
+                                                        ? "bg-game-cyan/10 border-game-cyan/60 shadow-[0_0_8px_rgba(56,189,248,0.15),inset_0_0_6px_rgba(56,189,248,0.05)]"
+                                                        : "bg-black/50 border-game-border hover:border-game-cyan/30 hover:bg-game-cyan/5"
+                                                }
+                                            `}
+                                        >
+                                            {a}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
-                            <p className="text-xs text-gray-500 mb-1">
-                                Your name
-                            </p>
-                            <input
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                maxLength={20}
-                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 mb-4"
-                            />
+                            {/* Name */}
+                            <div>
+                                <p className="field-label mb-1.5">Your name</p>
+                                <input
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    maxLength={20}
+                                    placeholder="Enter callsign..."
+                                    className="
+                                        w-full px-3 py-2 text-sm rounded-[3px] transition-all
+                                        bg-black/70 text-game-text placeholder:text-game-muted/40
+                                        border border-game-border
+                                        focus:outline-none focus:border-game-cyan/50
+                                        focus:shadow-[0_0_0_2px_rgba(56,189,248,0.06),inset_0_1px_3px_rgba(0,0,0,0.3)]
+                                    "
+                                />
+                            </div>
 
-                            <button className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors">
-                                <span className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                            {/* Google */}
+                            <button
+                                className="
+                                w-full px-3 py-2 text-sm rounded-[3px] flex items-center justify-center gap-2
+                                bg-black/50 border border-game-border text-game-muted
+                                hover:border-game-border/60 hover:text-game-text transition-all
+                            "
+                            >
+                                <span className="w-4 h-4 bg-white rounded-full flex items-center justify-center text-xs font-bold text-blue-600">
                                     G
                                 </span>
                                 Sign in with Google
                             </button>
 
                             {error && (
-                                <p className="text-red-500 text-xs mt-3">
+                                <p className="text-xs text-game-coral">
                                     {error}
                                 </p>
                             )}
+
+                            {/* What is this — worn paper */}
+                            <div className="paper-stack mt-auto">
+                                <div className="paper-front">
+                                    <div className="paper-content">
+                                        <p className="paper-label">
+                                            What is this? 🧠
+                                        </p>
+                                        <p
+                                            className="text-sm leading-relaxed"
+                                            style={{ color: "#3d2200" }}
+                                        >
+                                            Turn 4 random numbers into{" "}
+                                            <span
+                                                className="font-bold"
+                                                style={{ color: "#1a4a6e" }}
+                                            >
+                                                24
+                                            </span>{" "}
+                                            using{" "}
+                                            <span
+                                                className="font-mono font-bold"
+                                                style={{ color: "#2d1800" }}
+                                            >
+                                                + − × ÷
+                                            </span>{" "}
+                                            only. If you think you know the
+                                            math,{" "}
+                                            <span
+                                                className="font-semibold"
+                                                style={{ color: "#2d1800" }}
+                                            >
+                                                hit the buzzer fast!
+                                            </span>
+                                        </p>
+                                        <p
+                                            className="text-sm leading-relaxed mt-2"
+                                            style={{ color: "#3d2200" }}
+                                        >
+                                            The slowest players become the{" "}
+                                            <span
+                                                className="font-semibold"
+                                                style={{ color: "#8b1a00" }}
+                                            >
+                                                "Loser Candidates."
+                                            </span>{" "}
+                                            They point at you to prove your
+                                            answer. Prove it right — you get the
+                                            points. Fail it — they do.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        {/* RIGHT — Rooms (hanya tampil di desktop) */}
-                        <div className="hidden md:flex flex-col p-6">
-                            <p className="text-xs font-medium text-blue-600 uppercase tracking-widest mb-4">
-                                Choose a Room
-                            </p>
+                        {/* RIGHT — Rooms */}
+                        <div className="hidden md:flex flex-col p-6 gap-4">
+                            <p className="section-label">Choose a Room</p>
 
                             <button
                                 onClick={() => setShowCreate(true)}
-                                className="w-full border-2 border-dashed border-blue-200 rounded-lg py-2 text-sm text-blue-500 hover:border-blue-400 hover:bg-blue-50 transition-colors mb-3"
+                                className="
+                                    w-full py-2.5 rounded-[3px] text-sm
+                                    border border-dashed border-game-cyan/30 text-game-cyan/70
+                                    hover:border-game-cyan/60 hover:bg-game-cyan/5 hover:text-game-cyan
+                                    transition-all
+                                "
                             >
                                 + Create New Room
                             </button>
 
-                            <div className="flex-1 grid grid-cols-2 gap-2 overflow-y-auto max-h-80 content-start">
+                            <div
+                                className="
+                                flex-1 grid grid-cols-2 gap-2 overflow-y-auto content-start max-h-80
+                                [&::-webkit-scrollbar]:w-1
+                                [&::-webkit-scrollbar-track]:bg-transparent
+                                [&::-webkit-scrollbar-thumb]:bg-game-border
+                                [&::-webkit-scrollbar-thumb]:rounded-full
+                            "
+                            >
                                 {rooms.length === 0 ? (
-                                    <p className="col-span-2 text-center text-gray-400 text-sm mt-8">
-                                        Tidak ada room tersedia
+                                    <p className="col-span-2 text-center text-sm mt-8 text-game-muted opacity-50">
+                                        No rooms available
                                     </p>
                                 ) : (
                                     rooms.map((room) => (
@@ -184,35 +263,47 @@ export function Landing() {
                         </div>
                     </div>
 
-                    {/* Jump In bar — desktop */}
-                    <div className="hidden md:flex border-t border-gray-100 px-6 py-4 items-center justify-between">
-                        <p className="text-xs text-gray-400">
+                    {/* Jump In bar */}
+                    <div className="hidden md:flex px-6 py-4 items-center justify-between bg-black/60 border-t border-game-border">
+                        <p className="text-xs text-game-muted opacity-60">
                             {selectedRoom
-                                ? `${selectedRoom.name} · ${selectedRoom.players.length}/${selectedRoom.maxPlayers}`
-                                : "Random or choose a room"}
+                                ? `${selectedRoom.name} · ${selectedRoom.players.length}/${selectedRoom.maxPlayers} players`
+                                : "Random matchmaking or choose a room"}
                         </p>
                         <button
                             onClick={handleJumpIn}
                             disabled={!connected || !name.trim()}
-                            className="bg-yellow-400 text-blue-900 font-semibold px-6 py-2 rounded-full hover:bg-yellow-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="
+                                px-8 py-2.5 text-sm rounded-[3px]
+                                font-heading font-semibold tracking-[0.12em] uppercase
+                                bg-gradient-to-b from-amber-300 to-amber-500 text-amber-950
+                                border border-amber-400/40
+                                shadow-[0_2px_12px_rgba(245,158,11,0.2),inset_0_1px_0_rgba(255,255,255,0.15)]
+                                hover:from-amber-200 hover:to-amber-400
+                                hover:shadow-[0_4px_20px_rgba(245,158,11,0.35),inset_0_1px_0_rgba(255,255,255,0.2)]
+                                hover:-translate-y-px transition-all
+                                disabled:opacity-35 disabled:cursor-not-allowed
+                            "
                         >
-                            Jump In! ↗
+                            Jump In ↗
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* Mobile floating buttons */}
+            {/* Mobile floating */}
             <div className="md:hidden fixed bottom-6 right-6 flex flex-col items-end gap-2 z-40">
-                {/* Choose Room button */}
                 <button
                     onClick={() => setShowRoomSheet(true)}
-                    className="flex items-center gap-2 bg-white text-blue-600 font-medium px-4 py-2 rounded-full shadow-lg text-sm border border-blue-100"
+                    className="
+                        flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-[3px]
+                        backdrop-blur-game bg-game-surface/90 border border-game-accent text-game-cyan
+                    "
                 >
                     {selectedRoom ? (
                         <>
                             <span>{selectedRoom.name}</span>
-                            <span className="text-gray-400">
+                            <span className="text-game-muted">
                                 {selectedRoom.players.length}/
                                 {selectedRoom.maxPlayers}
                             </span>
@@ -224,54 +315,55 @@ export function Landing() {
                         </>
                     )}
                 </button>
-
-                {/* Jump In button */}
                 <button
                     onClick={handleJumpIn}
                     disabled={!connected || !name.trim()}
-                    className="bg-yellow-400 text-blue-900 font-semibold px-6 py-3 rounded-full shadow-lg hover:bg-yellow-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base"
+                    className="
+                        px-6 py-3 text-base rounded-[3px]
+                        font-heading font-semibold tracking-[0.12em] uppercase
+                        bg-gradient-to-b from-amber-300 to-amber-500 text-amber-950
+                        border border-amber-400/40
+                        shadow-[0_2px_12px_rgba(245,158,11,0.2),inset_0_1px_0_rgba(255,255,255,0.15)]
+                        hover:from-amber-200 hover:to-amber-400 hover:-translate-y-px transition-all
+                        disabled:opacity-35 disabled:cursor-not-allowed
+                    "
                 >
-                    Jump In! ↗
+                    Jump In ↗
                 </button>
             </div>
 
-            {/* Mobile Bottom Sheet — Room List */}
+            {/* Mobile Bottom Sheet */}
             {showRoomSheet && (
                 <div className="md:hidden fixed inset-0 z-50 flex flex-col justify-end">
-                    {/* Backdrop */}
                     <div
-                        className="absolute inset-0 bg-black/50"
+                        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
                         onClick={() => setShowRoomSheet(false)}
                     />
-
-                    {/* Sheet */}
-                    <div className="relative bg-white rounded-t-2xl p-5 max-h-[80vh] flex flex-col">
+                    <div className="relative p-5 max-h-[80vh] flex flex-col bg-game-surface border-t border-game-accent rounded-t-[4px]">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-bold text-gray-900">
+                            <p className="section-label flex-none">
                                 Choose a Room
-                            </h3>
+                            </p>
                             <button
                                 onClick={() => setShowRoomSheet(false)}
-                                className="text-gray-400 hover:text-gray-600 text-lg"
+                                className="text-game-muted hover:text-game-text"
                             >
                                 ✕
                             </button>
                         </div>
-
                         <button
                             onClick={() => {
                                 setShowRoomSheet(false);
                                 setShowCreate(true);
                             }}
-                            className="w-full border-2 border-dashed border-blue-200 rounded-lg py-2 text-sm text-blue-500 hover:border-blue-400 hover:bg-blue-50 transition-colors mb-3"
+                            className="w-full py-2 mb-3 rounded-[3px] text-sm border border-dashed border-game-cyan/30 text-game-cyan/70 hover:border-game-cyan/60 hover:bg-game-cyan/5 hover:text-game-cyan transition-all"
                         >
                             + Create New Room
                         </button>
-
                         <div className="flex-1 overflow-y-auto flex flex-col gap-2">
                             {rooms.length === 0 ? (
-                                <p className="text-center text-gray-400 text-sm mt-8">
-                                    Tidak ada room tersedia
+                                <p className="text-center text-sm mt-8 text-game-muted opacity-50">
+                                    No rooms available
                                 </p>
                             ) : (
                                 rooms.map((room) => (
@@ -299,63 +391,87 @@ export function Landing() {
 
             {/* Create Room Modal */}
             {showCreate && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-2xl p-6 w-full max-w-sm mx-4">
-                        <h3 className="font-bold text-lg text-gray-900 mb-4">
-                            Create New Room
-                        </h3>
+                <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div
+                        className="
+                        relative w-full max-w-sm mx-4 p-6 rounded-[4px]
+                        backdrop-blur-game bg-[rgba(18,22,30,0.95)]
+                        border border-game-border
+                        shadow-[0_0_0_1px_rgba(0,0,0,0.6),0_20px_60px_rgba(0,0,0,0.6)]
+                        before:absolute before:top-0 before:right-0 before:w-4 before:h-4 before:z-10
+                        before:bg-[linear-gradient(225deg,rgba(13,17,23,0.95)_50%,transparent_50%)]
+                    "
+                    >
+                        <p className="section-label mb-5">Create New Room</p>
 
-                        <p className="text-xs text-gray-500 mb-1">Room name</p>
+                        <p className="field-label mb-1.5">Room name</p>
                         <input
                             type="text"
                             value={newRoomName}
                             onChange={(e) => setNewRoomName(e.target.value)}
-                            placeholder="My Awesome Room"
-                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 mb-3"
+                            placeholder="My Arena"
+                            className="
+                                w-full px-3 py-2 text-sm rounded-[3px] mb-4 transition-all
+                                bg-black/70 text-game-text placeholder:text-game-muted/40
+                                border border-game-border
+                                focus:outline-none focus:border-game-cyan/50
+                                focus:shadow-[0_0_0_2px_rgba(56,189,248,0.06)]
+                            "
                         />
 
-                        <p className="text-xs text-gray-500 mb-1">Mode</p>
-                        <div className="flex gap-2 mb-3">
+                        <p className="field-label mb-2">Mode</p>
+                        <div className="flex gap-2 mb-4">
                             {MODES.map((m) => (
                                 <button
                                     key={m.value}
                                     onClick={() => setNewRoomMode(m.value)}
                                     className={`
-                                        flex-1 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                                        flex-1 py-1.5 rounded-[3px] text-[0.72rem]
+                                        font-heading tracking-[0.08em] uppercase
+                                        border transition-all
+                                        ${
                                             newRoomMode === m.value
-                                            ? "bg-blue-500 text-white border-blue-500" 
-                                            : "border-gray-200 text-gray-600 hover:border-blue-300"
+                                                ? "bg-game-cyan/10 border-game-cyan/55 text-game-cyan shadow-[0_0_10px_rgba(56,189,248,0.12)]"
+                                                : "bg-black/50 border-game-border text-game-muted hover:border-game-border/60 hover:text-game-text"
                                         }
-                                        `}
+                                    `}
                                 >
                                     {m.label}
                                 </button>
                             ))}
                         </div>
 
-                        <label className="flex items-center gap-2 text-sm text-gray-600 mb-4 cursor-pointer">
+                        <label className="flex items-center gap-2 text-sm mb-5 cursor-pointer text-game-muted">
                             <input
                                 type="checkbox"
                                 checked={newRoomPrivate}
                                 onChange={(e) =>
                                     setNewRoomPrivate(e.target.checked)
                                 }
-                                className="rounded"
+                                className="accent-game-cyan"
                             />
-                            Private room (pakai kode)
+                            Private room (invite code)
                         </label>
 
                         <div className="flex gap-2">
                             <button
                                 onClick={() => setShowCreate(false)}
-                                className="flex-1 border border-gray-200 rounded-lg py-2 text-sm text-gray-600 hover:bg-gray-50"
+                                className="flex-1 py-2 text-sm rounded-[3px] bg-white/[0.03] border border-game-border text-game-muted hover:bg-white/[0.06] hover:text-game-text transition-all"
                             >
-                                Batal
+                                Cancel
                             </button>
                             <button
                                 onClick={handleCreateRoom}
                                 disabled={!newRoomName.trim()}
-                                className="flex-1 bg-blue-500 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-600 disabled:opacity-50"
+                                className="
+                                    flex-1 py-2 text-sm rounded-[3px]
+                                    font-heading tracking-[0.12em] uppercase
+                                    bg-gradient-to-b from-amber-300 to-amber-500 text-amber-950
+                                    border border-amber-400/40
+                                    shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]
+                                    hover:from-amber-200 hover:to-amber-400 transition-all
+                                    disabled:opacity-35 disabled:cursor-not-allowed
+                                "
                             >
                                 Create
                             </button>
@@ -363,6 +479,7 @@ export function Landing() {
                     </div>
                 </div>
             )}
+
             <Footer />
         </div>
     );

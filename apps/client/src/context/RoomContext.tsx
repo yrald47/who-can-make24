@@ -133,6 +133,16 @@ export function RoomProvider({ children }: { children: ReactNode }) {
             if(!isReconnectingRef.current) {
                 const me = room.players.find((p) => p.id === socket.id);
                 if (me) saveIdentity(me.name, me.avatar, room.id, socket.id);
+            } else {
+                const identity = loadIdentity();
+                if (identity) {
+                    saveIdentity(
+                        identity.name,
+                        identity.avatar,
+                        room.id,
+                        socket.id,
+                    );
+                }
             }
             isReconnectingRef.current = false;
         };
