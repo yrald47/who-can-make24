@@ -35,6 +35,7 @@ export function Landing() {
     const [newRoomMode, setNewRoomMode] = useState<Room["mode"]>("casual");
     const [newRoomPrivate, setNewRoomPrivate] = useState(false);
     const [isTraining, setIsTraining] = useState(false);
+    const [isTrainingMobile, setIsTrainingMobile] = useState(false);
 
     function handleJumpIn() {
         if (!name.trim()) return;
@@ -164,7 +165,124 @@ export function Landing() {
                             )}
 
                             {/* What is this — worn paper */}
-                            <div className="paper-stack mt-auto">
+                            {/* What is this / Training — flip di mobile */}
+                            <div
+                                className="mt-auto md:hidden"
+                                style={{ perspective: "1000px" }}
+                            >
+                                <div
+                                    className="relative transition-all duration-500"
+                                    style={{
+                                        transformStyle: "preserve-3d",
+                                        transform: isTrainingMobile
+                                            ? "rotateY(180deg)"
+                                            : "rotateY(0deg)",
+                                        minHeight: "200px",
+                                        height: isTrainingMobile
+                                            ? "420px"
+                                            : "auto",
+                                    }}
+                                >
+                                    {/* FRONT — What is this */}
+                                    <div
+                                        className={`paper-stack ${isTrainingMobile ? "pointer-events-none" : "pointer-events-auto"}`}
+                                        style={{ backfaceVisibility: "hidden" }}
+                                    >
+                                        <div className="paper-front">
+                                            <div className="paper-content">
+                                                <p className="paper-label">
+                                                    What is this? 🧠
+                                                </p>
+                                                <p
+                                                    className="text-sm leading-relaxed"
+                                                    style={{ color: "#3d2200" }}
+                                                >
+                                                    Turn 4 random numbers into{" "}
+                                                    <span
+                                                        className="font-bold"
+                                                        style={{
+                                                            color: "#1a4a6e",
+                                                        }}
+                                                    >
+                                                        24
+                                                    </span>{" "}
+                                                    using{" "}
+                                                    <span
+                                                        className="font-mono font-bold"
+                                                        style={{
+                                                            color: "#2d1800",
+                                                        }}
+                                                    >
+                                                        + − × ÷
+                                                    </span>{" "}
+                                                    only. If you think you know
+                                                    the math,{" "}
+                                                    <span
+                                                        className="font-semibold"
+                                                        style={{
+                                                            color: "#2d1800",
+                                                        }}
+                                                    >
+                                                        hit the buzzer fast!
+                                                    </span>
+                                                </p>
+                                                <p
+                                                    className="text-sm leading-relaxed mt-2"
+                                                    style={{ color: "#3d2200" }}
+                                                >
+                                                    The slowest players become
+                                                    the{" "}
+                                                    <span
+                                                        className="font-semibold"
+                                                        style={{
+                                                            color: "#8b1a00",
+                                                        }}
+                                                    >
+                                                        "Loser Candidates."
+                                                    </span>{" "}
+                                                    They point at you to prove
+                                                    your answer. Prove it right
+                                                    — you get the points. Fail
+                                                    it — they do.
+                                                </p>
+                                                <button
+                                                    onClick={() =>
+                                                        setIsTrainingMobile(
+                                                            true,
+                                                        )
+                                                    }
+                                                    className="mt-3 text-[0.6rem] font-heading tracking-widest uppercase px-2 py-1 rounded-[3px] border transition-all"
+                                                    style={{
+                                                        color: "#3d1f00",
+                                                        borderColor:
+                                                            "rgba(61,31,0,0.3)",
+                                                    }}
+                                                >
+                                                    🧠 Train Mode →
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* BACK — Training */}
+                                    <div
+                                        className={`absolute inset-0 bg-game-surface2 rounded-[4px] border border-game-border ${isTrainingMobile ? "pointer-events-auto" : "pointer-events-none"}`}
+                                        style={{
+                                            backfaceVisibility: "hidden",
+                                            transform: "rotateY(180deg)",
+                                        }}
+                                    >
+                                        <TrainingPanel
+                                            onBack={() =>
+                                                setIsTrainingMobile(false)
+                                            }
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* What is this — desktop only (no flip) */}
+                            <div className="paper-stack mt-auto hidden md:block">
                                 <div className="paper-front">
                                     <div className="paper-content">
                                         <p className="paper-label">
@@ -234,7 +352,7 @@ export function Landing() {
                             >
                                 {/* FRONT — Room list */}
                                 <div
-                                    className="absolute inset-0 flex flex-col p-6 gap-4"
+                                    className={`absolute inset-0 flex flex-col p-6 gap-4 ${isTraining ? "pointer-events-none" : "pointer-events-auto"}`}
                                     style={{ backfaceVisibility: "hidden" }}
                                 >
                                     <div className="flex items-center justify-between">
@@ -287,7 +405,7 @@ export function Landing() {
 
                                 {/* BACK — Training */}
                                 <div
-                                    className="absolute inset-0 flex flex-col"
+                                    className={`absolute inset-0 flex flex-col ${isTraining ? "pointer-events-auto" : "pointer-events-none"}`}
                                     style={{
                                         backfaceVisibility: "hidden",
                                         transform: "rotateY(180deg)",

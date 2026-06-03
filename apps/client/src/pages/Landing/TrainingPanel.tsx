@@ -171,7 +171,7 @@ export function TrainingPanel({ onBack }: TrainingPanelProps) {
     }
 
     return (
-        <div className="flex flex-col h-full gap-4 p-6">
+        <div className="flex flex-col h-full gap-4 p-6 overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <p className="section-label flex-1">Train Your Brain</p>
@@ -258,7 +258,7 @@ export function TrainingPanel({ onBack }: TrainingPanelProps) {
             </div>
 
             {/* Steps log */}
-            <div className="flex-1 flex flex-col gap-1 min-h-[60px]">
+            <div className="flex flex-col gap-1 max-h-[80px] overflow-y-auto">
                 {steps.map((s, i) => (
                     <div
                         key={i}
