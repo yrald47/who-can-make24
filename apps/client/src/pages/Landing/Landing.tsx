@@ -5,6 +5,7 @@ import { RoomCard } from "../../components/RoomCard/RoomCard";
 import { useRoomContext } from "../../context/useRoomContext";
 import { loadIdentity } from "../../lib/identity";
 import { Footer } from "../../components/Footer/Footer";
+import { TrainingPanel } from "./TrainingPanel";
 
 const AVATARS = ["😀", "🤓", "😎", "🧐", "🥸", "🤩", "😏", "🤯"];
 const MODES: { value: Room["mode"]; label: string }[] = [
@@ -33,6 +34,7 @@ export function Landing() {
     const [newRoomName, setNewRoomName] = useState("");
     const [newRoomMode, setNewRoomMode] = useState<Room["mode"]>("casual");
     const [newRoomPrivate, setNewRoomPrivate] = useState(false);
+    const [isTraining, setIsTraining] = useState(false);
 
     function handleJumpIn() {
         if (!name.trim()) return;
@@ -55,7 +57,7 @@ export function Landing() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col">
+        <div className="bg-game-surface/50 min-h-screen flex flex-col">
             {/* Header */}
             <header className="backdrop-blur-game-sm bg-game-bg/85 border-b border-game-border px-6 py-3 flex items-center justify-between">
                 <div>
@@ -131,7 +133,7 @@ export function Landing() {
                                     className="
                                         w-full px-3 py-2 text-sm rounded-[3px] transition-all
                                         bg-black/70 text-game-text placeholder:text-game-muted/40
-                                        border border-game-border
+                                        border border-game-border 
                                         focus:outline-none focus:border-game-cyan/50
                                         focus:shadow-[0_0_0_2px_rgba(56,189,248,0.06),inset_0_1px_3px_rgba(0,0,0,0.3)]
                                     "
@@ -143,7 +145,10 @@ export function Landing() {
                                 className="
                                 w-full px-3 py-2 text-sm rounded-[3px] flex items-center justify-center gap-2
                                 bg-black/50 border border-game-border text-game-muted
-                                hover:border-game-border/60 hover:text-game-text transition-all
+                                hover:border-game-border/60 hover:text-game-text transition-all 
+                                rounded-xl
+                                [clip-path:polygon(100%_0%,_91%_100%,_3%_93%,_0%_6%)]
+                                
                             "
                             >
                                 <span className="w-4 h-4 bg-white rounded-full flex items-center justify-center text-xs font-bold text-blue-600">
@@ -212,59 +217,92 @@ export function Landing() {
                             </div>
                         </div>
 
-                        {/* RIGHT — Rooms */}
-                        <div className="hidden md:flex flex-col p-6 gap-4">
-                            <p className="section-label">Choose a Room</p>
-
-                            <button
-                                onClick={() => setShowCreate(true)}
-                                className="
-                                    w-full py-2.5 rounded-[3px] text-sm
-                                    border border-dashed border-game-cyan/30 text-game-cyan/70
-                                    hover:border-game-cyan/60 hover:bg-game-cyan/5 hover:text-game-cyan
-                                    transition-all
-                                "
-                            >
-                                + Create New Room
-                            </button>
-
+                        {/* RIGHT — Rooms / Training (flip) */}
+                        <div
+                            className="hidden md:flex flex-col relative"
+                            style={{ perspective: "1000px" }}
+                        >
+                            {/* Flip container */}
                             <div
-                                className="
-                                flex-1 grid grid-cols-2 gap-2 overflow-y-auto content-start max-h-80
-                                [&::-webkit-scrollbar]:w-1
-                                [&::-webkit-scrollbar-track]:bg-transparent
-                                [&::-webkit-scrollbar-thumb]:bg-game-border
-                                [&::-webkit-scrollbar-thumb]:rounded-full
-                            "
+                                className="flex-1 relative transition-all duration-500"
+                                style={{
+                                    transformStyle: "preserve-3d",
+                                    transform: isTraining
+                                        ? "rotateY(180deg)"
+                                        : "rotateY(0deg)",
+                                }}
                             >
-                                {rooms.length === 0 ? (
-                                    <p className="col-span-2 text-center text-sm mt-8 text-game-muted opacity-50">
-                                        No rooms available
-                                    </p>
-                                ) : (
-                                    rooms.map((room) => (
-                                        <RoomCard
-                                            key={room.id}
-                                            room={room}
-                                            isSelected={
-                                                selectedRoom?.id === room.id
-                                            }
-                                            onClick={() =>
-                                                setSelectedRoom((prev) =>
-                                                    prev?.id === room.id
-                                                        ? null
-                                                        : room,
-                                                )
-                                            }
-                                        />
-                                    ))
-                                )}
+                                {/* FRONT — Room list */}
+                                <div
+                                    className="absolute inset-0 flex flex-col p-6 gap-4"
+                                    style={{ backfaceVisibility: "hidden" }}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <p className="section-label flex-1">
+                                            Choose a Room
+                                        </p>
+                                        <button
+                                            onClick={() => setIsTraining(true)}
+                                            className="ml-3 text-[0.6rem] font-heading tracking-widest uppercase text-game-muted hover:text-game-cyan border border-game-border hover:border-game-cyan/40 px-2 py-1 rounded-[3px] transition-all whitespace-nowrap"
+                                        >
+                                            🧠 Train Mode
+                                        </button>
+                                    </div>
+
+                                    <button
+                                        onClick={() => setShowCreate(true)}
+                                        className="w-full py-2.5 rounded-[3px] text-sm border border-dashed border-game-cyan/30 text-game-cyan/70 hover:border-game-cyan/60 hover:bg-game-cyan/5 hover:text-game-cyan transition-all"
+                                    >
+                                        + Create New Room
+                                    </button>
+
+                                    <div className="flex-1 grid grid-cols-2 gap-2 overflow-y-auto content-start max-h-80 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-game-border [&::-webkit-scrollbar-thumb]:rounded-full">
+                                        {rooms.length === 0 ? (
+                                            <p className="col-span-2 text-center text-sm mt-8 text-game-muted opacity-50">
+                                                No rooms available
+                                            </p>
+                                        ) : (
+                                            rooms.map((room) => (
+                                                <RoomCard
+                                                    key={room.id}
+                                                    room={room}
+                                                    isSelected={
+                                                        selectedRoom?.id ===
+                                                        room.id
+                                                    }
+                                                    onClick={() =>
+                                                        setSelectedRoom(
+                                                            (prev) =>
+                                                                prev?.id ===
+                                                                room.id
+                                                                    ? null
+                                                                    : room,
+                                                        )
+                                                    }
+                                                />
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* BACK — Training */}
+                                <div
+                                    className="absolute inset-0 flex flex-col"
+                                    style={{
+                                        backfaceVisibility: "hidden",
+                                        transform: "rotateY(180deg)",
+                                    }}
+                                >
+                                    <TrainingPanel
+                                        onBack={() => setIsTraining(false)}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Jump In bar */}
-                    <div className="hidden md:flex px-6 py-4 items-center justify-between bg-black/60 border-t border-game-border">
+                    <div className="hidden md:flex relative overflow-hidden px-6 py-4 items-center justify-between bg-black/60 border-t border-game-border">
                         <p className="text-xs text-game-muted opacity-60">
                             {selectedRoom
                                 ? `${selectedRoom.name} · ${selectedRoom.players.length}/${selectedRoom.maxPlayers} players`
@@ -274,6 +312,7 @@ export function Landing() {
                             onClick={handleJumpIn}
                             disabled={!connected || !name.trim()}
                             className="
+                                absolute -right-1 -bottom-1
                                 px-8 py-2.5 text-sm rounded-[3px]
                                 font-heading font-semibold tracking-[0.12em] uppercase
                                 bg-gradient-to-b from-amber-300 to-amber-500 text-amber-950
@@ -282,7 +321,7 @@ export function Landing() {
                                 hover:from-amber-200 hover:to-amber-400
                                 hover:shadow-[0_4px_20px_rgba(245,158,11,0.35),inset_0_1px_0_rgba(255,255,255,0.2)]
                                 hover:-translate-y-px transition-all
-                                disabled:opacity-35 disabled:cursor-not-allowed
+                                disabled:opacity-35 disabled:cursor-not-allowed [clip-path:polygon(3%_20%,_100%_5%,_100%_100%,_0%_100%)]
                             "
                         >
                             Jump In ↗
@@ -325,7 +364,9 @@ export function Landing() {
                         border border-amber-400/40
                         shadow-[0_2px_12px_rgba(245,158,11,0.2),inset_0_1px_0_rgba(255,255,255,0.15)]
                         hover:from-amber-200 hover:to-amber-400 hover:-translate-y-px transition-all
-                        disabled:opacity-35 disabled:cursor-not-allowed
+                        disabled:opacity-35 disabled:cursor-not-allowed 
+                        [clip-path:shape(from_97.3%_4.1%,_line_to_84.7%_84.2%,_curve_to_80.5%_97.4%_with_82%_99%,_line_to_15.7%_87.9%,_curve_to_4.5%_85.0%_with_4%_86%,_line_to_1.5%_26.5%,_curve_to_2.3%_13.9%_with_1%_16%,_line_to_85.3%_4.1%,_curve_to_97.3%_4.1%_with_100%_2%)]
+                        
                     "
                 >
                     Jump In ↗
