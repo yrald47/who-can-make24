@@ -41,7 +41,9 @@
     --color-game-cyan: #38bdf8;
     --color-game-coral: #f87171;
     --color-game-amber: #fbbf24;
-    --font-heading: "Lost Tumbler", "Cubao Free 2 SemCond", "Good Timing", "Oswald", sans-serif;
+    --font-heading:
+        "Lost Tumbler", "Cubao Free 2 SemCond", "Good Timing", "Oswald",
+        sans-serif;
     --font-body: "Inter", sans-serif;
 }
 
@@ -220,5 +222,115 @@ h3,
         flex: 1;
         height: 1px;
         background: linear-gradient(90deg, rgba(61, 31, 0, 0.4), transparent);
+    }
+
+    /* =====================
+   BTN MOCO — Pseudo-3D Layered Button
+   Usage: className="btn-moco"
+   Override warna: tambah class gradient di atasnya
+   ===================== */
+
+    .btn-moco {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem 1.75rem;
+        font-family: var(--font-heading);
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        cursor: pointer;
+        border: none;
+        outline: none;
+        transition: transform 0.08s ease;
+        /* Bottom shadow — penahan beban */
+        filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.5))
+            drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4));
+    }
+
+    /* Middle extrusion — daging ketebalan */
+    .btn-moco::before {
+        content: "";
+        position: absolute;
+        inset: 3px 0 -4px 0;
+        background: rgba(0, 0, 0, 0.55);
+        clip-path: polygon(2% 0%, 100% 0%, 98% 100%, 0% 100%);
+        z-index: 0;
+        transition: inset 0.08s ease;
+    }
+
+    /* Front face — permukaan atas */
+    .btn-moco::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: inherit;
+        clip-path: polygon(2% 0%, 100% 0%, 98% 100%, 0% 100%);
+        z-index: 1;
+        /* Rim light */
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.2),
+            inset -1px 0 0 rgba(255, 255, 255, 0.08);
+        transition: inset 0.08s ease;
+    }
+
+    .btn-moco span {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Hover — surface amblas */
+    .btn-moco:hover::after {
+        inset: 2px 0 -2px 0;
+    }
+    .btn-moco:hover::before {
+        inset: 4px 0 -2px 0;
+    }
+
+    /* Active — fully pressed */
+    .btn-moco:active::after {
+        inset: 4px 0 0 0;
+    }
+    .btn-moco:active::before {
+        inset: 5px 0 0 0;
+    }
+    .btn-moco:active {
+        filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.5))
+            drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
+        transform: translateY(2px);
+    }
+
+    .btn-moco:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    /* Color variants */
+    .btn-moco-amber {
+        background: linear-gradient(to bottom, #fde68a, #f59e0b);
+        color: #1c1000;
+    }
+
+    .btn-moco-cyan {
+        background: linear-gradient(to bottom, #7dd3fc, #0ea5e9);
+        color: #001c2d;
+    }
+
+    .btn-moco-ghost {
+        background: linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0.08),
+            rgba(255, 255, 255, 0.03)
+        );
+        color: #8b949e;
+        border: 1px solid rgba(99, 130, 167, 0.25);
+    }
+
+    .btn-moco-danger {
+        background: linear-gradient(to bottom, #fca5a5, #ef4444);
+        color: #1c0000;
     }
 }

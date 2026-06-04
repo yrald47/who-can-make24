@@ -32,11 +32,22 @@ const SUIT_COLOR: Record<string, string> = {
 let idCounter = 100;
 
 export function TrainingPanel({ onBack }: TrainingPanelProps) {
-    const [hand, setHand] = useState<TrainingCard[]>(() =>
-        generateSolvableHand(),
-    );
-    const [available, setAvailable] = useState<AvailCard[]>(() =>
-        generateSolvableHand().map((c, i) => ({
+    // const [hand, setHand] = useState<TrainingCard[]>(() =>
+    //     generateSolvableHand(),
+    // );
+    // const [available, setAvailable] = useState<AvailCard[]>(() =>
+    //     generateSolvableHand().map((c, i) => ({
+    //         value: c.value,
+    //         label: c.rank,
+    //         id: i,
+    //         suit: c.suit,
+    //     })),
+    // );
+    const initialHand = generateSolvableHand();
+
+    const [hand, setHand] = useState<TrainingCard[]>(initialHand);
+    const [available, setAvailable] = useState<AvailCard[]>(
+        initialHand.map((c, i) => ({
             value: c.value,
             label: c.rank,
             id: i,
@@ -333,6 +344,12 @@ export function TrainingPanel({ onBack }: TrainingPanelProps) {
                     >
                         ↺ Reset
                     </button>
+                    <button
+                onClick={newHand}
+                className="btn-moco btn-moco-ghost text-[0.6rem] py-1 px-3"
+            >
+                <span>Next →</span>
+            </button>
                 </div>
             )}
         </div>

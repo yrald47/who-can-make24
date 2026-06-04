@@ -430,19 +430,19 @@ export function Landing() {
                             onClick={handleJumpIn}
                             disabled={!connected || !name.trim()}
                             className="
-                                absolute -right-1 -bottom-1
+                                absolute -right-1 -bottom-0
                                 px-8 py-2.5 text-sm rounded-[3px]
                                 font-heading font-semibold tracking-[0.12em] uppercase
                                 bg-gradient-to-b from-amber-300 to-amber-500 text-amber-950
                                 border border-amber-400/40
-                                shadow-[0_2px_12px_rgba(245,158,11,0.2),inset_0_1px_0_rgba(255,255,255,0.15)]
+                                shadow-[0_2px_12px_rgba(245,158,11,0.2),inset_0_-4px_0_rgba(255,255,255,0.15),inset_0_1px_0_rgba(255,255,255,0.15)]
                                 hover:from-amber-200 hover:to-amber-400
                                 hover:shadow-[0_4px_20px_rgba(245,158,11,0.35),inset_0_1px_0_rgba(255,255,255,0.2)]
                                 hover:-translate-y-px transition-all
                                 disabled:opacity-35 disabled:cursor-not-allowed [clip-path:polygon(3%_20%,_100%_5%,_100%_100%,_0%_100%)]
                             "
                         >
-                            Jump In ↗
+                            <span>Jump In ↗</span>
                         </button>
                     </div>
                 </div>
@@ -483,7 +483,7 @@ export function Landing() {
                         shadow-[0_2px_12px_rgba(245,158,11,0.2),inset_0_1px_0_rgba(255,255,255,0.15)]
                         hover:from-amber-200 hover:to-amber-400 hover:-translate-y-px transition-all
                         disabled:opacity-35 disabled:cursor-not-allowed 
-                        [clip-path:shape(from_97.3%_4.1%,_line_to_84.7%_84.2%,_curve_to_80.5%_97.4%_with_82%_99%,_line_to_15.7%_87.9%,_curve_to_4.5%_85.0%_with_4%_86%,_line_to_1.5%_26.5%,_curve_to_2.3%_13.9%_with_1%_16%,_line_to_85.3%_4.1%,_curve_to_97.3%_4.1%_with_100%_2%)]
+                        [clip-path:shape(from_97.3%_4.1%,line_to_84.7%_84.2%,curve_to_80.5%_97.4%_with_82%_99%,line_to_15.7%_87.9%,curve_to_4.5%_85.0%_with_4%_86%,line_to_1.5%_26.5%,curve_to_2.3%_13.9%_with_1%_16%,line_to_85.3%_4.1%,curve_to_97.3%_4.1%_with_100%_2%)]
                         
                     "
                 >
