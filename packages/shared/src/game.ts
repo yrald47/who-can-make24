@@ -5,6 +5,7 @@ export type GamePhase =
     | "pointing" // kandidat kalah menunjuk
     | "proof" // pembuktian jawaban
     | "result" // hasil ronde
+    | "pvp"
     | "finished"; // game selesai, deck habis
 
 export type ProofStep = {
@@ -42,4 +43,7 @@ export type GameState = {
     scores: Record<string, number>; // socketId → total skor
     roundScores: RoundScore[]; // delta skor ronde ini
     surrenderVotes: string[];
+    isWild: boolean;
+    isPvp: boolean;
+    pvpVotes: Record<string, boolean>; // socketId → pilihan
 };

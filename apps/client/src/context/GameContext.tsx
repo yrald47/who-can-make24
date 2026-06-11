@@ -10,13 +10,23 @@ import type {
 import { socket } from "../lib/socket";
 import { GameContext } from "./gameContextInstance";
 
-export interface GameContextType {
+export interface PvpCowardData {
+    loserId: string;
+    loserName: string;
+    winnerId: string;
+    scores: Record<string, number>;
+    players: { id: string; name: string; avatar: string }[];
+}
+
+
+export interface GameContextType { 
     gameState: GameState | null;
     phase: GamePhase | null;
     timer: number;
     submitBell: () => void;
     submitPoint: (targetId: string) => void;
     submitProof: (steps: ProofStep[]) => void;
+    submitPvpProof: (steps: ProofStep[]) => void;
     isGameOver: boolean;
     finalScores: Record<string, number>;
     logMessages: LogMessage[];
@@ -24,6 +34,19 @@ export interface GameContextType {
     unreadChat: number;
     clearUnreadChat: () => void;
     setChatOpen: (open: boolean) => void;
+    // PVP
+    pvpOffer: PvpOffer | null;
+    respondPvpOffer: (accept: boolean) => void;
+    pvpVotes: Record<string, boolean>;
+    pvpDeclineMsg: string | null;
+    // pvpCoward: {
+    //     loserId: string;
+    //     loserName: string;
+    //     winnerId: string;
+    //     scores: Record<string, number>;
+    // } | null;
+    pvpCoward: PvpCowardData | null;
+    clearGameOver: () => void;
 }
 
 export interface LogMessage {
@@ -38,6 +61,11 @@ export interface ChatMessage {
     playerName: string;
     text: string;
     timestamp: number;
+}
+
+export interface PvpOffer {
+    players: { id: string; name: string }[];
+    isWild: boolean;
 }
 
 interface RoundStartPayload {
@@ -56,11 +84,6 @@ interface PhaseChangedPayload {
     timer: number;
     startTime: number;
 }
-
-// interface TimerPayload {
-//     seconds: number;
-//     startTime: number;
-// }
 
 interface BellPressedPayload {
     playerId: string;
@@ -100,38 +123,73 @@ interface GameReconnectPayload {
     timer: number;
     startTime: number;
 }
-// interface GameStartedPayload {
-//     room: unknown;
-// }
-// export const GameContext = createContext<GameContextType | null>(null);
+
+const EMPTY_GAME_STATE: Omit<GameState, "isWild" | "isPvp" | "pvpVotes"> = {
+    phase: "playing",
+    deck: [],
+    currentCards: [],
+    round: 0,
+    totalRounds: 0,
+    timer: 0,
+    startTime: 0,
+    bellPressers: [],
+    candidates: [],
+    pointingTargets: {},
+    proofs: [],
+    scores: {},
+    roundScores: [],
+    surrenderVotes: [],
+};
 
 export function GameProvider({ children }: { children: ReactNode }) {
     const [gameState, setGameState] = useState<GameState | null>(null);
     const [timer, setTimer] = useState(0);
     const [phase, setPhase] = useState<GamePhase | null>(null);
-
     const [isGameOver, setIsGameOver] = useState(false);
     const [finalScores, setFinalScores] = useState<Record<string, number>>({});
-
     const [logMessages, setLogMessages] = useState<LogMessage[]>([]);
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-
     const [unreadChat, setUnreadChat] = useState(0);
+    const [pvpOffer, setPvpOffer] = useState<PvpOffer | null>(null);
+    const [pvpVotes, setPvpVotes] = useState<Record<string, boolean>>({});
+    const [pvpDeclineMsg, setPvpDeclineMsg] = useState<string | null>(null);
+    const [pvpCoward, setPvpCoward] = useState< PvpCowardData | null> (null);
 
-    // const [isChatOpen, setIsChatOpen] = useState(false);
+
+    const isChatOpenRef = useRef(false);
 
     function clearUnreadChat() {
         setUnreadChat(0);
     }
-
-    const isChatOpenRef = useRef(false);
-
     function setChatOpen(open: boolean) {
-        console.log("setChatOpen:", open);
-        isChatOpenRef.current = open  // ← update ref langsung
+        isChatOpenRef.current = open;
+    }
+
+    function clearGameOver() {
+        setIsGameOver(false);
+        setPvpCoward(null);
+        setFinalScores({});
+        setPhase(null);
+        setGameState(null);
     }
 
     useEffect(() => {
+        const onGameStarted = () => {
+            setLogMessages([]);
+            setChatMessages([]);
+            setIsGameOver(false);
+            setFinalScores({});
+            setPvpOffer(null);
+            setPvpVotes({});
+            setGameState({
+                ...EMPTY_GAME_STATE,
+                startTime: Date.now(),
+                isWild: false,
+                isPvp: false,
+                pvpVotes: {},
+            });
+        };
+
         const onRoundStart = (data: RoundStartPayload) => {
             setGameState((prev) =>
                 prev
@@ -140,7 +198,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             currentCards: data.cards,
                             round: data.round,
                             deck: Array(data.deckRemaining).fill(null),
-                            phase: "playing",
+                            phase: prev.isPvp ? "pvp" : "playing",
                             bellPressers: [],
                             candidates: [],
                             pointingTargets: {},
@@ -152,12 +210,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         }
                     : null,
             );
-            setPhase("playing");
+            setPhase((prev) => (prev === "pvp" ? "pvp" : "playing"));
             setTimer(data.timer);
         };
 
         const onGameReconnect = (data: GameReconnectPayload) => {
-            console.log("game:reconnect received", data.phase);
             setGameState(data.gameState);
             setPhase(data.phase);
             setTimer(data.timer);
@@ -186,10 +243,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
             setGameState((prev) =>
                 prev
                     ? {
-                        ...prev,
-                        timer: data.seconds,
-                        startTime: data.startTime,
-                    }
+                            ...prev,
+                            timer: data.seconds,
+                            startTime: data.startTime,
+                        }
                     : null,
             );
         };
@@ -198,11 +255,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
             setGameState((prev) =>
                 prev
                     ? {
-                        ...prev,
-                        bellPressers: data.bellPressers,
-                        timer: data.timer,
-                        startTime: data.startTime,
-                    }
+                            ...prev,
+                            bellPressers: data.bellPressers,
+                            timer: data.timer,
+                            startTime: data.startTime,
+                        }
                     : null,
             );
             setTimer(data.timer);
@@ -211,10 +268,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         const onPointingUpdated = (data: PointingUpdatedPayload) => {
             setGameState((prev) =>
                 prev
-                    ? {
-                        ...prev,
-                        pointingTargets: data.pointingTargets,
-                    }
+                    ? { ...prev, pointingTargets: data.pointingTargets }
                     : null,
             );
         };
@@ -222,10 +276,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         const onProofSubmitted = (data: ProofSubmittedPayload) => {
             setGameState((prev) => {
                 if (!prev) return null;
-                const existing = prev.proofs.find(
-                    (p) => p.playerId === data.playerId,
-                );
-                if (existing) return prev;
+                if (prev.proofs.find((p) => p.playerId === data.playerId))
+                    return prev;
                 return {
                     ...prev,
                     proofs: [
@@ -246,52 +298,28 @@ export function GameProvider({ children }: { children: ReactNode }) {
             setGameState((prev) =>
                 prev
                     ? {
-                        ...prev,
-                        phase: "result",
-                        scores: data.totalScores,
-                        roundScores: Object.entries(
-                            data.roundScores as Record<string, number>,
-                        ).map(([playerId, delta]) => ({
-                            playerId,
-                            delta,
-                            reason: "",
-                        })),
-                    }
+                            ...prev,
+                            phase: "result",
+                            scores: data.totalScores,
+                            roundScores: Object.entries(
+                                data.roundScores as Record<string, number>,
+                            ).map(([playerId, delta]) => ({
+                                playerId,
+                                delta,
+                                reason: "",
+                            })),
+                        }
                     : null,
             );
         };
 
-        const onGameStarted = () => {
-            setLogMessages([]);
-            setChatMessages([]);
-            setIsGameOver(false);
-            setFinalScores({});
-            setGameState({
-                phase: "playing",
-                deck: [],
-                currentCards: [],
-                round: 0,
-                totalRounds: 0,
-                timer: 0,
-                startTime: Date.now(),
-                bellPressers: [],
-                candidates: [],
-                pointingTargets: {},
-                proofs: [],
-                scores: {},
-                roundScores: [],
-                surrenderVotes: [],
-            });
-        };
-
         const onSurrenderVote = (data: SurrenderVotePayload) => {
-            console.log(`Surrender votes: ${data.votes}/${data.total}`);
             setGameState((prev) =>
                 prev
                     ? {
-                        ...prev,
-                        surrenderVotes: Array(data.votes).fill("vote"),
-                    }
+                            ...prev,
+                            surrenderVotes: Array(data.votes).fill("vote"),
+                        }
                     : null,
             );
         };
@@ -300,6 +328,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             setIsGameOver(true);
             setFinalScores(data.scores);
             setPhase("finished");
+            setPvpOffer(null);
         };
 
         const onLog = (data: { text: string; timestamp: number }) => {
@@ -313,24 +342,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
             ]);
         };
 
-
-        // function setChatOpen(open: boolean) {
-        //     isChatOpenRef.current = open; // update ref, bukan state
-        // }
-
         const onChat = (data: {
             playerId: string;
             playerName: string;
             text: string;
             timestamp: number;
         }) => {
-            console.log(
-                "onChat, isChatOpenRef.current:",
-                isChatOpenRef.current,
-                "from me:",
-                data.playerId === socket.id,
-            );
-
             setChatMessages((prev) => [
                 ...prev,
                 {
@@ -342,10 +359,71 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 },
             ]);
             if (data.playerId !== socket.id && !isChatOpenRef.current) {
-                // setUnreadChat((prev) => prev + 1);
-                // setUnreadChat((prev) => (isChatOpen ? prev : prev + 1));
                 setUnreadChat((prev) => prev + 1);
             }
+        };
+
+        // PVP EVENTS
+        const onPvpOffer = (data: PvpOffer) => {
+            setPvpOffer(data);
+            setPvpVotes({});
+        };
+
+        const onPvpVoteUpdate = (data: {
+            votes: Record<string, boolean>;
+            playerId: string;
+            accept: boolean;
+        }) => {
+            setPvpVotes(data.votes);
+        };
+
+        const onPvpStarted = (data: {
+            scores: Record<string, number>;
+            isWild: boolean;
+        }) => {
+            setPvpOffer(null);
+            setPhase("pvp");
+            setGameState((prev) =>
+                prev
+                    ? {
+                            ...prev,
+                            phase: "pvp",
+                            isPvp: true,
+                            isWild: data.isWild,
+                            scores: data.scores,
+                            pvpVotes: {},
+                        }
+                    : null,
+            );
+            setLogMessages((prev) => [
+                ...prev,
+                {
+                    id: `log-${Date.now()}`,
+                    text: "⚡ PVP Mode activated!",
+                    timestamp: Date.now(),
+                },
+            ]);
+        };
+
+        // const onPvpDeclined = () => {
+        //     setPvpOffer(null);
+        //     socket.emit("client:pvp-declined-cleanup");
+        //     // RoomContext akan handle kick ke landing via room:removed atau disconnect
+        // };
+
+        const onPvpDeclined = (data: { declinedBy: string }) => {
+            setPvpOffer(null);
+            setPvpDeclineMsg(`${data.declinedBy} declined PVP mode`);
+            // Auto clear setelah 3 detik
+            setTimeout(() => setPvpDeclineMsg(null), 3000);
+        };
+
+        const onPvpCoward = (data: PvpCowardData) => {
+            setPvpCoward(data);
+            setIsGameOver(true);
+            setFinalScores(data.scores);
+            setPhase("finished");
+            setPvpOffer(null);
         };
 
         socket.on("game:started", onGameStarted);
@@ -361,6 +439,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
         socket.on("game:over", onGameOver);
         socket.on("game:log", onLog);
         socket.on("game:chat", onChat);
+        socket.on("game:pvp-offer", onPvpOffer);
+        socket.on("game:pvp-vote-update", onPvpVoteUpdate);
+        socket.on("game:pvp-started", onPvpStarted);
+        socket.on("game:pvp-declined", onPvpDeclined);
+        socket.on("game:pvp-coward", onPvpCoward);
 
         return () => {
             socket.off("game:started", onGameStarted);
@@ -376,6 +459,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
             socket.off("game:over", onGameOver);
             socket.off("game:log", onLog);
             socket.off("game:chat", onChat);
+            socket.off("game:pvp-offer", onPvpOffer);
+            socket.off("game:pvp-vote-update", onPvpVoteUpdate);
+            socket.off("game:pvp-started", onPvpStarted);
+            socket.off("game:pvp-declined", onPvpDeclined);
+            socket.off("game:pvp-coward", onPvpCoward);
         };
     }, []);
 
@@ -394,13 +482,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
     function submitBell() {
         socket.emit("game:bell");
     }
-
     function submitPoint(targetId: string) {
         socket.emit("game:point", { targetId });
     }
-
     function submitProof(steps: ProofStep[]) {
         socket.emit("game:prove", { steps });
+    }
+    function submitPvpProof(steps: ProofStep[]) {
+        socket.emit("game:pvp-prove", { steps });
+    }
+    function respondPvpOffer(accept: boolean) {
+        socket.emit("game:pvp-vote", { accept });
     }
 
     return (
@@ -414,11 +506,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 submitBell,
                 submitPoint,
                 submitProof,
+                submitPvpProof,
                 logMessages,
                 chatMessages,
                 unreadChat,
                 clearUnreadChat,
                 setChatOpen,
+                pvpOffer,
+                respondPvpOffer,
+                pvpVotes,
+                pvpDeclineMsg,
+                pvpCoward,
+                clearGameOver,
             }}
         >
             {children}

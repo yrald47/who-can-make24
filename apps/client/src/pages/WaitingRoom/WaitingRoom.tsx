@@ -16,7 +16,13 @@ export function WaitingRoom() {
     const room = currentRoom;
     const me = room.players.find((p) => p.id === socket.id);
     const isHost = me?.isHost ?? false;
-    const canStart = room.players.length >= GAME_CONSTANTS.MIN_PLAYERS_CASUAL;
+    // const canStart = room.players.length >= GAME_CONSTANTS.MIN_PLAYERS_CASUAL;
+    const minPlayers =
+        room.mode === "pvp"
+            ? GAME_CONSTANTS.MIN_PLAYERS_PVP
+            : GAME_CONSTANTS.MIN_PLAYERS_CASUAL;
+
+    const canStart = room.players.length >= minPlayers;
 
     function handleStart() {
         console.log("handleStart called, emitting game:start");
@@ -121,7 +127,7 @@ export function WaitingRoom() {
                         {!canStart && (
                             <p className="text-center text-sm text-gray-400 mb-3">
                                 Menunggu minimal{" "}
-                                {GAME_CONSTANTS.MIN_PLAYERS_CASUAL} pemain...
+                                {minPlayers} pemain...
                             </p>
                         )}
 
@@ -133,7 +139,7 @@ export function WaitingRoom() {
                             >
                                 {canStart
                                     ? "Mulai Game! 🚀"
-                                    : `Menunggu pemain (${room.players.length}/${GAME_CONSTANTS.MIN_PLAYERS_CASUAL})`}
+                                    : `Menunggu pemain (${room.players.length}/${minPlayers})`}
                             </button>
                         ) : (
                             <div className="w-full bg-gray-100 text-gray-400 text-center py-3 rounded-xl text-sm">

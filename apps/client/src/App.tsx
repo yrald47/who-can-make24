@@ -7,7 +7,7 @@ import { GameOver } from "./pages/Game/GameOver";
 
 function App() {
     const { currentRoom } = useRoomContext();
-    const {gameState, isGameOver} = useGameContext();
+    const {gameState, isGameOver, pvpCoward} = useGameContext();
 
     // if (currentRoom?.status === "playing" && isGameOver) {
     //     return <GameOver />;
@@ -26,7 +26,7 @@ function App() {
     // return <Landing />;
 
     let content;
-    if (currentRoom?.status === "playing" && isGameOver) {
+    if ((currentRoom?.status === "playing" && isGameOver) || pvpCoward) {
         content = <GameOver />;
     } else if (currentRoom?.status === "playing" && gameState) {
         content = <Game />;

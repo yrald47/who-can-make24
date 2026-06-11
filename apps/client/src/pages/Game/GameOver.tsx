@@ -5,137 +5,172 @@ import { Footer } from "../../components/Footer/Footer";
 
 export function GameOver() {
     const { currentRoom, leaveRoom } = useRoomContext();
-    const { finalScores } = useGameContext();
+    const { finalScores, pvpCoward, clearGameOver } = useGameContext();
     const { socket } = useSocket();
 
-    if (!currentRoom) return null;
+    const myId = socket.id ?? "";
 
-    // Sort players by final score
-    const sorted = [...currentRoom.players].sort(
+    // Gunakan players dari currentRoom atau dari pvpCoward snapshot
+    // const players = currentRoom?.players ?? pvpCoward?.players ?? [];
+    const players = pvpCoward
+        ? pvpCoward.players
+        : (currentRoom?.players ?? []);
+    const roomName = currentRoom?.name ?? "PVP Match";
+
+    const sorted = [...players].sort(
         (a, b) => (finalScores[b.id] ?? 0) - (finalScores[a.id] ?? 0),
     );
 
-    const myId = socket.id ?? "";
     const isHost =
-        currentRoom.players.find((p) => p.id === myId)?.isHost ?? false;
+        currentRoom?.players.find((p) => p.id === myId)?.isHost ?? false;
+    const amICoward = pvpCoward?.loserId === myId;
+    const amIWinner = pvpCoward?.winnerId === myId;
+
+    const RANK_EMOJI: Record<number, string> = { 0: "🥇", 1: "🥈", 2: "🥉" };
 
     function handleReturnToLobby() {
         socket.emit("game:return-to-lobby");
     }
 
-    // const PODIUM_STYLE: Record<number, string> = {
-    //     0: "text-yellow-400 text-4xl",
-    //     1: "text-gray-300 text-3xl",
-    //     2: "text-amber-600 text-2xl",
-    // };
-
-    // const RANK_EMOJI: Record<number, string> = {
-    //     0: "🥇",
-    //     1: "🥈",
-    //     2: "🥉",
-    // };
-
     return (
         <div className="min-h-screen flex flex-col">
             {/* Header */}
-            <div className="bg-blue-700 px-6 py-3 text-center">
-                <h1 className="text-white font-bold text-xl">
-                    Game Selesai! 🎉
+            <div className="bg-game-bg/90 backdrop-blur-game-sm border-b border-game-border px-6 py-3 text-center">
+                <h1 className="font-heading text-game-text text-xl font-bold tracking-widest uppercase">
+                    {pvpCoward
+                        ? amICoward
+                            ? "You Ran Away 🏳️"
+                            : "Victory! ⚡"
+                        : "Game Over 🎉"}
                 </h1>
-                <p className="text-blue-200 text-xs">{currentRoom.name}</p>
+                <p className="text-game-muted text-xs mt-0.5">{roomName}</p>
             </div>
 
             <div className="flex-1 flex flex-col items-center p-4 gap-4 overflow-y-auto">
-                {/* Podium top 3 */}
-                {sorted.length >= 3 && (
+                {/* PVP Coward banner */}
+                {pvpCoward && (
+                    <div
+                        className={`w-full max-w-sm p-4 rounded-[4px] border text-center ${
+                            amICoward
+                                ? "border-game-coral/40 bg-game-coral/10"
+                                : "border-game-cyan/40 bg-game-cyan/10"
+                        }`}
+                    >
+                        {amICoward ? (
+                            <>
+                                <p className="text-game-coral font-heading tracking-widest text-lg mb-1">
+                                    🏳️ COWARD
+                                </p>
+                                <p className="text-game-muted text-sm">
+                                    You fled the arena. Shameful.
+                                </p>
+                            </>
+                        ) : amIWinner ? (
+                            <>
+                                <p className="text-game-cyan font-heading tracking-widest text-lg mb-1">
+                                    ⚡ WINNER
+                                </p>
+                                <p className="text-game-muted text-sm">
+                                    {pvpCoward.loserName} fled. Victory is
+                                    yours.
+                                </p>
+                            </>
+                        ) : null}
+                    </div>
+                )}
+
+                {/* Podium — hanya kalau 3+ player dan bukan coward scenario */}
+                {!pvpCoward && sorted.length >= 3 && (
                     <div className="flex items-end justify-center gap-4 mt-4">
-                        {/* 2nd place */}
                         <div className="flex flex-col items-center gap-1">
                             <span className="text-4xl">
                                 {sorted[1]?.avatar}
                             </span>
-                            <span className="text-gray-300 text-2xl">🥈</span>
-                            <p className="text-white text-xs font-medium">
+                            <span className="text-2xl">🥈</span>
+                            <p className="text-game-text text-xs font-medium">
                                 {sorted[1]?.name}
                             </p>
-                            <p className="text-blue-200 text-xs">
+                            <p className="text-game-muted text-xs">
                                 {finalScores[sorted[1]?.id ?? ""] ?? 0}pt
                             </p>
-                            <div className="w-16 h-16 bg-gray-300/20 rounded-t-lg" />
+                            <div className="w-16 h-16 bg-game-muted/20 rounded-t-[3px]" />
                         </div>
-
-                        {/* 1st place */}
                         <div className="flex flex-col items-center gap-1 -mb-4">
                             <span className="text-5xl">
                                 {sorted[0]?.avatar}
                             </span>
-                            <span className="text-yellow-400 text-3xl">🥇</span>
-                            <p className="text-white text-sm font-bold">
+                            <span className="text-3xl">🥇</span>
+                            <p className="text-game-text text-sm font-bold">
                                 {sorted[0]?.name}
                             </p>
-                            <p className="text-yellow-300 text-xs">
+                            <p className="text-game-amber text-xs">
                                 {finalScores[sorted[0]?.id ?? ""] ?? 0}pt
                             </p>
-                            <div className="w-16 h-24 bg-yellow-400/20 rounded-t-lg" />
+                            <div className="w-16 h-24 bg-game-amber/20 rounded-t-[3px]" />
                         </div>
-
-                        {/* 3rd place */}
                         <div className="flex flex-col items-center gap-1">
                             <span className="text-3xl">
                                 {sorted[2]?.avatar}
                             </span>
-                            <span className="text-amber-600 text-xl">🥉</span>
-                            <p className="text-white text-xs font-medium">
+                            <span className="text-xl">🥉</span>
+                            <p className="text-game-text text-xs font-medium">
                                 {sorted[2]?.name}
                             </p>
-                            <p className="text-blue-200 text-xs">
+                            <p className="text-game-muted text-xs">
                                 {finalScores[sorted[2]?.id ?? ""] ?? 0}pt
                             </p>
-                            <div className="w-16 h-10 bg-amber-600/20 rounded-t-lg" />
+                            <div className="w-16 h-10 bg-game-coral/20 rounded-t-[3px]" />
                         </div>
                     </div>
                 )}
 
-                {/* Full leaderboard */}
+                {/* Leaderboard */}
                 <div className="w-full max-w-sm flex flex-col gap-2">
-                    <p className="text-white/60 text-xs uppercase tracking-widest text-center">
-                        Leaderboard Final
+                    <p className="section-label text-[0.6rem]">
+                        Final Leaderboard
                     </p>
                     {sorted.map((player, index) => {
                         const isMe = player.id === myId;
+                        const isCoward = pvpCoward?.loserId === player.id;
+                        const isWinner = pvpCoward?.winnerId === player.id;
+
                         return (
                             <div
                                 key={player.id}
                                 className={`
-                                    flex items-center gap-3 rounded-xl p-3
-                                    ${isMe ? "bg-yellow-400/20 border border-yellow-400/50 ring-1 ring-yellow-400" : "bg-white/10"}
+                                    flex items-center gap-3 rounded-[4px] p-3 border
+                                    ${isCoward ? "border-game-coral/30 bg-game-coral/5 opacity-70" : ""}
+                                    ${isWinner ? "border-game-amber/40 bg-game-amber/5" : ""}
+                                    ${isMe && !isCoward && !isWinner ? "border-game-cyan/40 bg-game-cyan/5" : ""}
+                                    ${!isCoward && !isWinner && !isMe ? "border-game-border bg-game-surface" : ""}
                                 `}
                             >
-                                <span className="text-sm w-6 text-center">
-                                    {index === 0
-                                        ? "🥇"
-                                        : index === 1
-                                            ? "🥈"
-                                            : index === 2
-                                            ? "🥉"
-                                            : `${index + 1}`}
+                                <span className="text-sm w-6 text-center text-game-muted">
+                                    {isCoward
+                                        ? "🏳️"
+                                        : (RANK_EMOJI[index] ?? `${index + 1}`)}
                                 </span>
                                 <span className="text-2xl">
                                     {player.avatar}
                                 </span>
                                 <div className="flex-1">
                                     <p
-                                        className={`text-sm font-medium ${isMe ? "text-yellow-300" : "text-white"}`}
+                                        className={`text-sm font-medium ${isMe ? "text-game-cyan" : "text-game-text"}`}
                                     >
                                         {player.name}
                                         {isMe && (
-                                            <span className="ml-1 text-xs text-yellow-400/70">
-                                                (kamu)
+                                            <span className="ml-1 text-xs text-game-muted">
+                                                (you)
                                             </span>
                                         )}
                                     </p>
+                                    {isCoward && (
+                                        <p className="text-game-coral text-xs">
+                                            fled the arena
+                                        </p>
+                                    )}
                                 </div>
-                                <span className="text-white font-bold text-sm font-mono">
+                                <span className="font-heading font-bold text-sm text-game-amber">
                                     {finalScores[player.id] ?? 0}pt
                                 </span>
                             </div>
@@ -143,28 +178,28 @@ export function GameOver() {
                     })}
                 </div>
 
-                {/* Action buttons */}
+                {/* Actions */}
                 <div className="w-full max-w-sm flex flex-col gap-2 mt-2 pb-4">
-                    {/* Main lagi — semua player bisa klik */}
-                    {isHost ? (
+                    {isHost && currentRoom ? (
                         <button
                             onClick={handleReturnToLobby}
-                            className="w-full bg-yellow-400 text-blue-900 font-semibold py-3 rounded-xl hover:bg-yellow-300 transition-colors"
+                            className="btn-moco btn-moco-amber w-full"
                         >
-                            🔄 Main Lagi (Kembali ke Lobi)
+                            <span>🔄 Play Again</span>
                         </button>
-                    ) : (
-                        <div className="w-full bg-white/10 text-white/60 text-center py-3 rounded-xl text-sm">
-                            Menunggu host kembali ke lobi...
+                    ) : currentRoom ? (
+                        <div className="w-full border border-game-border text-game-muted text-center py-3 rounded-[4px] text-sm">
+                            Waiting for host to return to lobby...
                         </div>
-                    )}
-
-                    {/* Keluar — semua player bisa */}
+                    ) : null}
                     <button
-                        onClick={leaveRoom}
-                        className="w-full border border-white/20 text-white/70 py-3 rounded-xl hover:bg-white/10 transition-colors text-sm"
+                        onClick={() => {
+                            clearGameOver();
+                            leaveRoom();
+                        }}
+                        className="btn-moco btn-moco-ghost w-full"
                     >
-                        🚪 Keluar dari Room
+                        <span>🚪 Leave Room</span>
                     </button>
                 </div>
             </div>

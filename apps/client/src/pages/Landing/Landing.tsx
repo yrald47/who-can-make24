@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Room } from "@who-can-make24/shared";
 import { useSocket } from "../../hooks/useSocket";
 import { RoomCard } from "../../components/RoomCard/RoomCard";
@@ -8,10 +8,10 @@ import { Footer } from "../../components/Footer/Footer";
 import { TrainingPanel } from "./TrainingPanel";
 
 const AVATARS = ["😀", "🤓", "😎", "🧐", "🥸", "🤩", "😏", "🤯"];
-const MODES: { value: Room["mode"]; label: string }[] = [
+const MODES: { value: Room["mode"]; label: string; disabled?: boolean }[] = [
     { value: "casual", label: "Casual" },
     { value: "pvp", label: "PvP" },
-    { value: "battle-royale", label: "Battle Royale" },
+    { value: "battle-royale", label: "Battle Royale", disabled: true },
 ];
 
 export function Landing() {
@@ -36,6 +36,19 @@ export function Landing() {
     const [newRoomPrivate, setNewRoomPrivate] = useState(false);
     const [isTraining, setIsTraining] = useState(false);
     const [isTrainingMobile, setIsTrainingMobile] = useState(false);
+    const [newRoomWild, setNewRoomWild] = useState(false);
+
+    const [pvpMsg, setPvpMsg] = useState(() => {
+        const msg = localStorage.getItem("pvp_decline_msg");
+        if (msg) localStorage.removeItem("pvp_decline_msg");
+        return msg;
+    });
+
+    useEffect(() => {
+        if (!pvpMsg) return;
+        const t = setTimeout(() => setPvpMsg(null), 4000);
+        return () => clearTimeout(t);
+    }, [pvpMsg]);
 
     function handleJumpIn() {
         if (!name.trim()) return;
@@ -52,9 +65,17 @@ export function Landing() {
 
     function handleCreateRoom() {
         if (!newRoomName.trim() || !name.trim()) return;
-        createRoom(newRoomName, newRoomMode, newRoomPrivate, name, avatar);
+        createRoom(
+            newRoomName,
+            newRoomMode,
+            newRoomPrivate,
+            name,
+            avatar,
+            newRoomWild,
+        );
         setShowCreate(false);
         setNewRoomName("");
+        setNewRoomWild(false);
     }
 
     return (
@@ -83,7 +104,7 @@ export function Landing() {
             <div className="flex-1 flex items-center justify-center p-4 md:p-8">
                 <div
                     className="
-                    relative w-full max-w-4xl rounded-[4px]
+                    relative w-full max-w-4xl rounded-sm
                     backdrop-blur-game bg-[rgba(18,22,30,0.82)]
                     border border-game-border
                     shadow-[0_0_0_1px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.03),0_20px_60px_rgba(0,0,0,0.6)]
@@ -266,7 +287,7 @@ export function Landing() {
 
                                     {/* BACK — Training */}
                                     <div
-                                        className={`absolute inset-0 bg-game-surface2 rounded-[4px] border border-game-border ${isTrainingMobile ? "pointer-events-auto" : "pointer-events-none"}`}
+                                        className={`absolute inset-0 bg-game-surface2 rounded-sm border border-game-border ${isTrainingMobile ? "pointer-events-auto" : "pointer-events-none"}`}
                                         style={{
                                             backfaceVisibility: "hidden",
                                             transform: "rotateY(180deg)",
@@ -553,7 +574,7 @@ export function Landing() {
                 <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50">
                     <div
                         className="
-                        relative w-full max-w-sm mx-4 p-6 rounded-[4px]
+                        relative w-full max-w-sm mx-4 p-6 rounded-sm
                         backdrop-blur-game bg-[rgba(18,22,30,0.95)]
                         border border-game-border
                         shadow-[0_0_0_1px_rgba(0,0,0,0.6),0_20px_60px_rgba(0,0,0,0.6)]
@@ -583,7 +604,10 @@ export function Landing() {
                             {MODES.map((m) => (
                                 <button
                                     key={m.value}
-                                    onClick={() => setNewRoomMode(m.value)}
+                                    onClick={() =>
+                                        !m.disabled && setNewRoomMode(m.value)
+                                    }
+                                    disabled={m.disabled}
                                     className={`
                                         flex-1 py-1.5 rounded-[3px] text-[0.72rem]
                                         font-heading tracking-[0.08em] uppercase
@@ -596,6 +620,7 @@ export function Landing() {
                                     `}
                                 >
                                     {m.label}
+                                    {m.disabled ? " (Soon)" : ""}
                                 </button>
                             ))}
                         </div>
@@ -610,6 +635,21 @@ export function Landing() {
                                 className="accent-game-cyan"
                             />
                             Private room (invite code)
+                        </label>
+
+                        <label className="flex items-center gap-2 text-sm mb-5 cursor-pointer text-game-muted">
+                            <input
+                                type="checkbox"
+                                checked={newRoomWild}
+                                onChange={(e) =>
+                                    setNewRoomWild(e.target.checked)
+                                }
+                                className="accent-game-amber"
+                            />
+                            Wild Mode 🃏{" "}
+                            <span className="text-game-muted/50 text-xs">
+                                (J=11, Q=12, K=13)
+                            </span>
                         </label>
 
                         <div className="flex gap-2">
@@ -640,6 +680,11 @@ export function Landing() {
             )}
 
             <Footer />
+            {pvpMsg && (
+                <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-sm border border-game-coral/40 bg-game-bg/95 backdrop-blur-game shadow-2xl text-game-coral text-sm font-heading tracking-wider text-center">
+                    ✗ {pvpMsg}
+                </div>
+            )}
         </div>
     );
 }

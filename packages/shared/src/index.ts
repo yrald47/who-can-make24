@@ -21,6 +21,7 @@ export type Room = {
     players: Player[];
     maxPlayers: 16;
     status: "waiting" | "playing" | "finished";
+    isWild: boolean;
 };
 
 // Tipe Game Phase
@@ -42,6 +43,7 @@ export const GAME_CONSTANTS = {
     DEFAULT_TIMER_SECONDS: 60,
     POINTING_TIMER_SECONDS: 20,
     PROOF_TIMER_SECONDS: 20,
+    PVP_TIMER_SECONDS: 90,
     TARGET_NUMBER: 24,
 } as const;
 

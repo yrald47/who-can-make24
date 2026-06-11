@@ -37,7 +37,7 @@ export function RoomCard({ room, isSelected, onClick }: RoomCardProps) {
         `}
         >
             <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-sm leading-height">
+                <span className="font-semibold text-sm leading-height ">
                     {room.name}
                 </span>
                 <span

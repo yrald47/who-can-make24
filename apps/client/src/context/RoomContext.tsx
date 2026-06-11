@@ -16,6 +16,7 @@ export interface RoomContextType {
         isPrivate: boolean,
         name: string,
         avatar: string,
+        isWild: boolean,
     ) => void;
     joinRoom: (
         roomId: string,
@@ -189,6 +190,17 @@ export function RoomProvider({ children }: { children: ReactNode }) {
             });
         };
 
+        const onPvpDeclined = (data: { declinedBy: string }) => {
+            localStorage.setItem(
+                "pvp_decline_msg",
+                `${data.declinedBy} declined PVP mode`,
+            );
+            setCurrentRoom(null);
+            clearRoomId();
+        };
+
+        socket.on("game:pvp-declined", onPvpDeclined);
+
         socket.on("connect", onConnect);
         socket.on("room:list", onRoomList);
         socket.on("room:created", onRoomCreated);
@@ -200,6 +212,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         socket.on("room:removed", onRoomRemoved);
         socket.on("room:list-update", onRoomListUpdate);
         socket.on("room:reconnect-failed", onReconnectFailed);
+        socket.on("game:pvp-declined", onPvpDeclined);
 
         // socket.on("connect", () => socket.emit("room:list"));
         // socket.on("room:list", ({ rooms }) => setRooms(rooms));
@@ -253,7 +266,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
             socket.off("room:removed", onRoomRemoved);
             socket.off("room:list-update", onRoomListUpdate);
             socket.off("room:reconnect-failed", onReconnectFailed);
-
+            socket.off("game:pvp-declined", onPvpDeclined);
             socket.offAny();
         };
     }, []);
@@ -264,9 +277,10 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         isPrivate: boolean,
         name: string,
         avatar: string,
+        isWild: boolean = false,
     ) {
         setError(null);
-        socket.emit("room:create", { roomName, mode, isPrivate, name, avatar });
+        socket.emit("room:create", { roomName, mode, isPrivate, name, avatar, isWild });
     }
 
     function joinRoom(

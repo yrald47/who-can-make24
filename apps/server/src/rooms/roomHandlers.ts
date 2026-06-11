@@ -11,11 +11,21 @@ import {
     getRoomById,
     updateRoom,
 } from "./roomManager.redis";
-import { registerGameHandlers, startTimer } from "../game/gameHandlers";
-import { initGameState, deleteGameState, getGameState } from "../game/gameManager";
+import {
+    registerGameHandlers,
+    startTimer,
+    checkAndOfferPvp,
+    startPvpTimer,
+} from "../game/gameHandlers";
+import {
+    initGameState,
+    deleteGameState,
+    getGameState,
+    clearRoomTimer,
+    initPvpState,
+} from "../game/gameManager";
 
 export function registerRoomHandlers(io: Server, socket: Socket) {
-    // Buat player object dari data yang dikirim client
     function makePlayer(name: string, avatar: string): Player {
         return {
             id: socket.id,
@@ -28,19 +38,29 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
     }
 
     // CREATE ROOM
-    socket.on("room:create", async ({ name, roomName, avatar, mode, isPrivate }) => {
-        const host: Player = { ...makePlayer(name, avatar), isHost: true };
-        const room = await createRoom(roomName, mode, isPrivate, host);
+    socket.on(
+        "room:create",
+        async ({ name, roomName, avatar, mode, isPrivate, isWild }) => {
+            const host: Player = { ...makePlayer(name, avatar), isHost: true };
+            const room = await createRoom(
+                roomName,
+                mode,
+                isPrivate,
+                host,
+                isWild ?? false,
+            ); // ← isWild
 
-        // Join socket ke room channel Socket.io
-        socket.join(room.id);
-        if (!isPrivate) {
-            io.emit("room:list-update", { room }); // ← tambah ini
-        }
+            socket.join(room.id);
+            if (!isPrivate) {
+                io.emit("room:list-update", { room });
+            }
 
-        socket.emit("room:created", { room });
-        console.log(`Room created: ${room.name} (${room.id}) by ${host.name}`);
-    });
+            socket.emit("room:created", { room });
+            console.log(
+                `Room created: ${room.name} (${room.id}) by ${host.name} [wild: ${room.isWild}]`,
+            );
+        },
+    );
 
     // JOIN ROOM
     socket.on("room:join", async ({ roomId, name, avatar, code }) => {
@@ -53,15 +73,11 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
         }
 
         socket.join(roomId);
-
-        // Broadcast ke SEMUA di room termasuk yang baru join
         io.to(roomId).emit("room:updated", { room: result.room });
         io.to(roomId).emit("game:log", {
             text: `${player.name} joined the room`,
             timestamp: Date.now(),
         });
-
-        // Kirim konfirmasi ke yang join
         socket.emit("room:joined", { room: result.room });
 
         console.log(`${player.name} joined room ${roomId}`);
@@ -98,9 +114,9 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
             const preservedIsHost = oldPlayer?.isHost ?? false;
 
             const gameState = getGameState(roomId);
-            const preservedScore = gameState?.scores[oldSocketId ?? ""] ?? oldPlayer?.score ?? 0;
-            
-            // const preservedScore = oldPlayer?.score ?? 0;
+            const preservedScore =
+                gameState?.scores[oldSocketId ?? ""] ?? oldPlayer?.score ?? 0;
+
             const player = makePlayer(name, avatar);
             player.score = preservedScore;
             player.isHost = preservedIsHost;
@@ -119,7 +135,6 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
                 gameState.bellPressers = gameState.bellPressers.map((id) =>
                     id === oldSocketId ? socket.id : id,
                 );
-
                 gameState.candidates = gameState.candidates.map((id) =>
                     id === oldSocketId ? socket.id : id,
                 );
@@ -129,17 +144,13 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
             socket.emit("room:joined", { room: result.room });
             io.to(roomId).emit("room:updated", { room: result.room });
 
-            // Kalau game sedang berlangsung, kirim current game state
             if (room.status === "playing" && gameState) {
-                // const gameState = getGameState(roomId);
-                if (gameState) {
-                    socket.emit("game:reconnect", {
-                        gameState,
-                        phase: gameState.phase,
-                        timer: gameState.timer,
-                        startTime: gameState.startTime,
-                    });
-                }
+                socket.emit("game:reconnect", {
+                    gameState,
+                    phase: gameState.phase,
+                    timer: gameState.timer,
+                    startTime: gameState.startTime,
+                });
             }
         },
     );
@@ -149,7 +160,6 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
         console.log(`game:start received from ${socket.id}`);
         const room = await getRoomByPlayerId(socket.id);
         console.log(`room found:`, room?.id, room?.players.length);
-        // const room = getRoomByPlayerId(socket.id);
         if (!room) return;
 
         const player = room.players.find((p) => p.id === socket.id);
@@ -160,27 +170,43 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
             return;
         }
 
-        if (room.players.length < GAME_CONSTANTS.MIN_PLAYERS_CASUAL) {
+        const minPlayers =
+            room.mode === "pvp"
+                ? GAME_CONSTANTS.MIN_PLAYERS_PVP
+                : GAME_CONSTANTS.MIN_PLAYERS_CASUAL;
+
+        if (room.players.length < minPlayers) {
             socket.emit("room:error", {
-                message: `Minimal ${GAME_CONSTANTS.MIN_PLAYERS_CASUAL} pemain`,
+                message: `Minimal ${minPlayers} pemain`,
             });
             return;
         }
 
         room.status = "playing";
         await updateRoom(room);
-        console.log("rooms in socket:", [...socket.rooms]);
-        // io.to(room.id).emit("game:started", { room });
+
         const playerIds = room.players.map((p) => p.id);
-        const gameState = initGameState(room.id, playerIds);
+        const gameState = initGameState(room.id, playerIds, room.isWild); // ← pass isWild
+
+        if (room.mode === "pvp") {
+            initPvpState(room.id);
+        }
+
+        const currentState = getGameState(room.id)!;
 
         io.to(room.id).emit("game:started", { room });
         io.to(room.id).emit("game:log", {
-            text: `Game started! ${room.players.length} players`,
+            text: `Game started! ${room.players.length} players${room.isWild ? " • Wild Mode 🃏" : ""}`,
             timestamp: Date.now(),
         });
 
-        // Mulai ronde pertama setelah 1 detik
+        if (room.mode === "pvp") {
+            io.to(room.id).emit("game:pvp-started", {
+                scores: currentState.scores,
+                isWild: currentState.isWild,
+            });
+        }
+
         setTimeout(() => {
             io.to(room.id).emit("game:round-start", {
                 cards: gameState.currentCards,
@@ -189,8 +215,14 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
                 timer: gameState.timer,
                 startTime: gameState.startTime,
             });
-            startTimer(io, room.id);
+            // startTimer(io, room.id);
+            if (room.mode === "pvp") {
+                startPvpTimer(io, room.id);
+            } else {
+                startTimer(io, room.id);
+            }
         }, 1000);
+
         console.log("game:started emitted to room", room.id);
     });
 
@@ -198,47 +230,72 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
     socket.on("room:leave", async () => {
         const currentRoom = await getRoomByPlayerId(socket.id);
         const roomId = currentRoom?.id;
+
+        // Cek apakah sedang PVP — kalau iya, yang leave = coward
+        if (currentRoom?.status === "playing") {
+            const gameState = getGameState(currentRoom.id);
+            if (gameState?.isPvp) {
+                clearRoomTimer(currentRoom.id);
+
+                // Yang stay menang otomatis
+                const winner = currentRoom.players.find(
+                    (p) => p.id !== socket.id,
+                );
+                const loser = currentRoom.players.find(
+                    (p) => p.id === socket.id,
+                );
+
+                if (winner && loser) {
+                    // const finalScores = { ...gameState.scores };
+                    const finalScores: Record<string, number> = {};
+                    for (const p of currentRoom.players) {
+                        finalScores[p.id] = gameState.scores[p.id] ?? 0;
+                    }
+                    finalScores[loser.id] = 0;
+                    io.to(currentRoom.id).emit("game:log", {
+                        text: `${loser.name} left the game — coward! ${winner.name} wins!`,
+                        timestamp: Date.now(),
+                    });
+
+                    io.to(currentRoom.id).emit("game:pvp-coward", {
+                        loserId: loser.id,
+                        loserName: loser.name,
+                        winnerId: winner.id,
+                        scores: finalScores,
+                        players: currentRoom.players.map((p) => ({ id: p.id, name: p.name, avatar: p.avatar }))
+                    });
+                }
+
+                deleteGameState(currentRoom.id);
+            }
+        }
+
         const result = await leaveRoom(socket.id);
 
         if (result) {
-            // Room masih ada, broadcast update
             const { room } = result;
-            console.log(
-                `Player left, room still exists: ${room.id}, players: ${room.players.length}`,
-            );
-            console.log(`Emitting room:list-update to ALL connected clients`);
             io.to(room.id).emit("room:updated", { room });
             socket.leave(room.id);
             io.emit("room:list-update", { room });
+
+            // Cek apakah perlu offer PVP
+            if (room.status === "playing" && room.players.length === 2) {
+                await checkAndOfferPvp(io, room.id);
+            }
         } else if (roomId) {
-            console.log(`Room empty, removing: ${roomId}`);
-            // Room kosong dan sudah dihapus — cleanup game state
             socket.leave(roomId);
             deleteGameState(roomId);
-            // Broadcast room list update ke semua client di landing page
             io.emit("room:removed", { roomId });
         }
 
         console.log(`Player ${socket.id} left`);
-
-        // if (!result) return;
-
-        // const { room } = result;
-        // socket.leave(room.id);
-        // socket.to(room.id).emit("room:updated", { room });
-
-        // if (room.players.length === 0) {
-        //     deleteGameState(room.id);
-        // }
-
-        // console.log(`Player ${socket.id} left room ${room.id}`);
     });
 
+    // RETURN TO LOBBY
     socket.on("game:return-to-lobby", async () => {
         const room = await getRoomByPlayerId(socket.id);
         if (!room) return;
 
-        // Hanya host yang bisa trigger return to lobby
         const player = room.players.find((p) => p.id === socket.id);
         if (!player?.isHost) return;
 
@@ -250,12 +307,11 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
 
     // LIST ROOMS
     socket.on("room:list", async () => {
-        // socket.emit("room:list", { rooms: getPublicRooms() });
         const rooms = await getPublicRooms();
         socket.emit("room:list", { rooms });
     });
 
-    // Auto leave kalau disconnect
+    // DISCONNECT
     socket.on("disconnect", async () => {
         console.log(`Disconnect handler called for ${socket.id}`);
         const currentRoom = await getRoomByPlayerId(socket.id);
@@ -263,13 +319,24 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
 
         if (!currentRoom) return;
 
-        // Tandai player sebagai disconnected tapi JANGAN hapus dari room
         const player = currentRoom.players.find((p) => p.id === socket.id);
         if (player) {
             (player as any).disconnected = true;
             await updateRoom(currentRoom);
             io.to(currentRoom.id).emit("room:updated", { room: currentRoom });
             io.emit("room:list-update", { room: currentRoom });
+
+            // Cek apakah perlu offer PVP
+            // Hitung player yang masih aktif (tidak disconnected)
+            const activePlayers = currentRoom.players.filter(
+                (p) => !(p as any).disconnected,
+            );
+            if (
+                currentRoom.status === "playing" &&
+                activePlayers.length === 2
+            ) {
+                await checkAndOfferPvp(io, currentRoom.id);
+            }
         }
     });
 }

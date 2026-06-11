@@ -15,6 +15,7 @@ export async function createRoom(
     mode: Room["mode"],
     isPrivate: boolean,
     host: Player,
+    isWild: boolean = false,
 ): Promise<Room> {
     const room: Room = {
         id: generateRoomId(),
@@ -22,6 +23,7 @@ export async function createRoom(
         code: isPrivate ? generateRoomCode() : undefined,
         mode,
         isPrivate,
+        isWild,
         players: [host],
         maxPlayers: GAME_CONSTANTS.MAX_PLAYERS,
         status: "waiting",
@@ -91,6 +93,20 @@ export async function leaveRoom(
 
     await redis.set(KEYS.room(room.id), JSON.stringify(room));
     return { room, wasHost };
+}
+
+export async function deleteRoom(roomId: string): Promise<void> {
+    // const playerIds = await redis.smembers(KEYS.allRooms);
+    // Hapus semua playerRoom keys untuk room ini dulu
+    const raw = await redis.get<string>(KEYS.room(roomId));
+    if (raw) {
+        const room: Room = typeof raw === "string" ? JSON.parse(raw) : raw;
+        for (const player of room.players) {
+            await redis.del(KEYS.playerRoom(player.id));
+        }
+    }
+    await redis.del(KEYS.room(roomId));
+    await redis.srem(KEYS.allRooms, roomId);
 }
 
 export async function getPublicRooms(): Promise<Room[]> {
