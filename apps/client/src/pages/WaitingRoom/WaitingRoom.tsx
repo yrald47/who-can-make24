@@ -96,7 +96,7 @@ export function WaitingRoom() {
                                     }
                                 `}
                             >
-                                {copied ? "✓ Copied!" : "🔗 Share Link"}
+                                {copied ? "✓ Copied!" : "🔗 Get a Challenger"}
                             </button>
                         </div>
                     </div>
