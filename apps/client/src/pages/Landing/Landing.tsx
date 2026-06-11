@@ -1,3 +1,4 @@
+import { socket } from "../../lib/socket";
 import { useState, useEffect } from "react";
 import type { Room } from "@who-can-make24/shared";
 import { useSocket } from "../../hooks/useSocket";
@@ -43,6 +44,19 @@ export function Landing() {
         if (msg) localStorage.removeItem("pvp_decline_msg");
         return msg;
     });
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const joinId = params.get("join");
+        if (!joinId || !name.trim()) return;
+        window.history.replaceState({}, "", window.location.pathname);
+        socket.emit("room:join", {
+            roomId: joinId,
+            name,
+            avatar,
+            viaLink: true,
+        });
+    }, []); // eslint-disable-line
 
     useEffect(() => {
         if (!pvpMsg) return;

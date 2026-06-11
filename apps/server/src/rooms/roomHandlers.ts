@@ -63,7 +63,7 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
     );
 
     // JOIN ROOM
-    socket.on("room:join", async ({ roomId, name, avatar, code }) => {
+    socket.on("room:join", async ({ roomId, name, avatar, code, viaLink }) => {
         const player = makePlayer(name, avatar);
         const result = await joinRoom(roomId, player, code);
 
@@ -75,7 +75,9 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
         socket.join(roomId);
         io.to(roomId).emit("room:updated", { room: result.room });
         io.to(roomId).emit("game:log", {
-            text: `${player.name} joined the room`,
+            text: viaLink
+                ? `${player.name} joined via share link 🔗`
+                : `${player.name} joined the room`,
             timestamp: Date.now(),
         });
         socket.emit("room:joined", { room: result.room });
