@@ -47,4 +47,16 @@ export const GAME_CONSTANTS = {
     TARGET_NUMBER: 24,
 } as const;
 
+export const VALID_AVATARS = [
+    "😀",
+    "🤓",
+    "😎",
+    "🧐",
+    "🥸",
+    "🤩",
+    "😏",
+    "🤯",
+] as const;
+
+
 // export type RoomStatus = "waiting" | "playing" | "finished";

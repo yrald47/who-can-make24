@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Review Report - Who Can Make24</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+        }
+
+        header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .date {
+            color: #95a5a6;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        section {
+            margin-bottom: 50px;
+            page-break-inside: avoid;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-left: 5px solid #e74c3c;
+        }
+
+        .section-title.suggestions {
+            border-left-color: #f39c12;
+        }
+
+        .issue {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ecf0f1;
+            background: #fafafa;
+            border-radius: 5px;
+            page-break-inside: avoid;
+        }
+
+        .issue.critical {
+            border-left: 5px solid #e74c3c;
+            background: #fadbd8;
+        }
+
+        .issue.suggestion {
+            border-left: 5px solid #f39c12;
+            background: #fdebd0;
+        }
+
+        .issue-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .issue-number {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: white;
+            background: #e74c3c;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .issue.suggestion .issue-number {
+            background: #f39c12;
+        }
+
+        .issue-title {
+            flex: 1;
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .subsection {
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .subsection-title {
+            font-weight: 600;
+            color: #34495e;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .location {
+            background: white;
+            padding: 10px 15px;
+            border-left: 3px solid #3498db;
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #2980b9;
+            border-radius: 3px;
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+            font-family: 'Fira Code', 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+            border: 1px solid #333;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            border: none;
+            font-family: inherit;
+            font-size: inherit;
+            line-height: inherit;
+            color: inherit;
+            overflow: visible;
+        }
+
+        .code-block.bad {
+            background: #3d1f1f;
+            color: #ff6b6b;
+            border-left: 4px solid #e74c3c;
+            border: 1px solid #5d2f2f;
+        }
+
+        .code-block.bad pre {
+            color: #ff9999;
+        }
+
+        .code-block.good {
+            background: #1f3d2f;
+            color: #51cf66;
+            border-left: 4px solid #27ae60;
+            border: 1px solid #2d5d3f;
+        }
+
+        .code-block.good pre {
+            color: #69f0ae;
+        }
+
+        /* Syntax highlighting for code keywords */
+        .keyword { color: #569cd6; }
+        .string { color: #ce9178; }
+        .function { color: #dcdcaa; }
+        .comment { color: #6a9955; font-style: italic; }
+        .type { color: #4ec9b0; }
+        .number { color: #b5cea8; }
+        .operator { color: #d4d4d4; }
+
+        /* Pre tag styling */
+        code-block pre {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            border: none;
+            font-family: inherit;
+            line-height: inherit;
+            overflow: visible;
+        }
+
+        .code-label {
+            font-size: 0.75em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+        }
+
+        .code-label.bad {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+
+        .code-label.good {
+            color: #51cf66;
+            background: rgba(81, 207, 102, 0.1);
+            border: 1px solid rgba(81, 207, 102, 0.3);
+        }
+
+        .description {
+            background: white;
+            padding: 15px;
+            border-radius: 3px;
+            margin-bottom: 15px;
+            border-left: 3px solid #3498db;
+        }
+
+        .rationale {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 3px;
+            border-left: 3px solid #3498db;
+            font-style: italic;
+            color: #34495e;
+        }
+
+        .impact-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 12px;
+            border-radius: 3px;
+            margin-bottom: 15px;
+            font-size: 0.95em;
+        }
+
+        .impact-box strong {
+            color: #856404;
+        }
+
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            text-align: center;
+            color: #95a5a6;
+            font-size: 0.9em;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                max-width: 100%;
+                box-shadow: none;
+                padding: 20px;
+            }
+            section {
+                page-break-inside: avoid;
+            }
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .badge.critical {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .badge.suggestion {
+            background: #f39c12;
+            color: white;
+        }
+
+        .badge.security {
+            background: #c0392b;
+            color: white;
+        }
+
+        .badge.performance {
+            background: #9b59b6;
+            color: white;
+        }
+
+        .badge.maintenance {
+            background: #3498db;
+            color: white;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+        }
+
+        .summary-table th {
+            background: #2c3e50;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .summary-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .summary-table tr:hover {
+            background: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 Code Review Report</h1>
+            <p>Who Can Make24 - Real-time Multiplayer Game</p>
+            <div class="date">Generated: 12 Juni 2026</div>
+        </header>
+
+        <!-- CRITICAL ISSUES -->
+        <section>
+            <h2 class="section-title">🔴 MASALAH KRITIS (Critical Issues)</h2>
+            <p style="margin-bottom: 20px; color: #7f8c8d;">Isu-isu berikut HARUS diperbaiki sebelum deployment ke production. Ini merupakan security dan stability risks yang serius.</p>
+
+            <!-- Issue 1 -->
+            <div class="issue critical">
+                <div class="issue-header">
+                    <div class="issue-number">1</div>
+                    <div class="issue-title">CORS Security: Origin "*" Terlalu Permisif</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">📍 Lokasi:</div>
+                    <div class="location">apps/server/src/index.ts (Lines 18-22)</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">⚠️ Masalah:</div>
+                    <div class="code-block bad">
+                        <div class="code-label bad">❌ Current Code:</div>
+<pre>const io = new Server(httpServer, {
+  cors: {
+    origin: "*",  // ⚠️ CRITICAL: Accepts from ANY domain
+    methods: ["GET", "POST"],
+  },
+  transports: ["websocket", "polling"],
+});</pre>
+                    </div>
+                </div>
+
+                <div class="description">
+                    <strong>Impact:</strong> Konfigurasi CORS <code>origin: "*"</code> memungkinkan <strong>siapa saja dari domain mana pun</strong> untuk terhubung ke server game Anda. Ini membuka celah serius:
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li><strong>Cross-Origin Attacks:</strong> Attacker bisa embed game di site mereka dan steal data</li>
+                        <li><strong>Bot Abuse:</strong> Mudah untuk membuat bot yang connect tanpa batasan</li>
+                        <li><strong>DDoS Risk:</strong> Tidak ada kontrol terhadap source koneksi</li>
+                    </ul>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">✅ Solusi & Contoh Kode:</div>
+                    <div class="code-block good">
+                        <div class="code-label good">✓ Fixed Code:</div>
+<pre>import dotenv from 'dotenv';
+dotenv.config();
+
+const allowedOrigins = (
+  process.env.ALLOWED_ORIGINS || 
+  'http://localhost:5173'
+).split(',');
+
+const io = new Server(httpServer, {
+  cors: {
+    origin: allowedOrigins,  // ✅ Whitelist only
+    credentials: true,
+    methods: ["GET", "POST"],
+  },
+  perMessageDeflate: false,  // Reduce memory
+});</pre>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">.env Configuration:</div>
+                    <div class="code-block good">
+                        <div class="code-label good">Environment File:</div>
+ALLOWED_ORIGINS=https://yourgame.com,https://www.yourgame.com,http://localhost:5173
+                    </div>
+                </div>
+
+                <div class="impact-box">
+                    <strong>🎯 Alasan Perbaikan:</strong> Melindungi dari unauthorized cross-origin requests, mengurangi attack surface, dan memastikan hanya aplikasi Anda yang bisa konek ke server.
+                </div>
+            </div>
+
+            <!-- Issue 2 -->
+            <div class="issue critical">
+                <div class="issue-header">
+                    <div class="issue-number">2</div>
+                    <div class="issue-title">No Input Validation - XSS & Data Integrity Risk</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">📍 Lokasi:</div>
+                    <div class="location">apps/server/src/rooms/roomHandlers.ts (Lines 23-30)</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">⚠️ Masalah:</div>
+                    <div class="code-block bad">
+                        <div class="code-label bad">❌ Current Code:</div>
+socket.on("room:create", 
+    async ({ name, roomName, avatar, mode }) => {
+    const host: Player = 
+        { ...makePlayer(name, avatar), isHost: true };
+    // ❌ Tidak ada validasi sama sekali!
+                    </div>
+                </div>
+
+                <div class="description">
+                    <strong>Risiko:</strong>
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li><strong>XSS Risk:</strong> Player bisa submit <code>&lt;img src=x onerror="alert('xss')"&gt;</code> sebagai nama</li>
+                        <li><strong>Data Integrity:</strong> Nama bisa berisi karakter invalid, emoji berlebihan, null bytes</li>
+                        <li><strong>Buffer Overflow:</strong> Nama panjang unlimited bisa cause memory issues</li>
+                    </ul>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">✅ Solusi & Contoh Kode:</div>
+                    <div class="code-block good">
+                        <div class="code-label good">✓ Validation Utilities:</div>
+<pre>// Validate player name
+function validatePlayerName(name: string) {
+  if (!name || typeof name !== 'string') {
+    return { valid: false, error: 'Name required' };
+  }
+  if (name.length < 2 || name.length > 20) {
+    return { 
+      valid: false, 
+      error: 'Name must be 2-20 characters' 
+    };
+  }
+  // Only allow letters, numbers, spaces, underscore
+  if (!/^[\p{L}\p{N}\s_-]+$/u.test(name)) {
+    return { valid: false, error: 'Invalid characters' };
+  }
+  return { valid: true };
+}
+
+// Validate room name
+function validateRoomName(name: string) {
+  if (!name || typeof name !== 'string') {
+    return { valid: false, error: 'Room name required' };
+  }
+  if (name.length < 3 || name.length > 30) {
+    return { 
+      valid: false, 
+      error: 'Room name must be 3-30 chars' 
+    };
+  }
+  if (!/^[\p{L}\p{N}\s_-]+$/u.test(name)) {
+    return { valid: false, error: 'Invalid characters' };
+  }
+  return { valid: true };
+}
+
+// Validate avatar from whitelist
+const VALID_AVATARS = ['🎮', '🎯', '🚀', '⚡', '🔥', '💎'];
+function validateAvatar(avatar: string): boolean {
+  return VALID_AVATARS.includes(avatar);
+}
+
+// Validate game mode
+function validateGameMode(mode: string): boolean {
+  return ['casual', 'pvp'].includes(mode);
+}</pre>
+                    </div>
+
+                    <div class="code-block good">
+                        <div class="code-label good">✓ Handler with Validation:</div>
+<pre>socket.on("room:create", 
+  async (data) => {
+    // Validate player name
+    const nameValidation = validatePlayerName(data.name);
+    if (!nameValidation.valid) {
+      socket.emit("room:error", { 
+        message: nameValidation.error 
+      });
+      return;
+    }
+
+    // Validate room name
+    const roomValidation = validateRoomName(
+      data.roomName
+    );
+    if (!roomValidation.valid) {
+      socket.emit("room:error", { 
+        message: roomValidation.error 
+      });
+      return;
+    }
+
+    // Validate avatar
+    if (!validateAvatar(data.avatar)) {
+      socket.emit("room:error", { 
+        message: 'Invalid avatar' 
+      });
+      return;
+    }
+
+    // Validate game mode
+    if (!validateGameMode(data.mode)) {
+      socket.emit("room:error", { 
+        message: 'Invalid game mode' 
+      });
+      return;
+    }
+
+    // ✅ All inputs are now safe!
+    const host: Player = {
+      ...makePlayer(data.name, data.avatar),
+      isHost: true
+    };
+    const room = await createRoom(
+      data.roomName, 
+      data.mode, 
+      data.isPrivate, 
+      host
+    );
+  }
+);</pre>
+                    </div>
+                </div>
+
+                <div class="impact-box">
+                    <strong>🎯 Alasan Perbaikan:</strong> Validasi input adalah first line of defense terhadap XSS, injection, dan data corruption. Melindungi semua pengguna dari malicious input.
+                </div>
+            </div>
+
+            <!-- Issue 3 -->
+            <div class="issue critical">
+                <div class="issue-header">
+                    <div class="issue-number">3</div>
+                    <div class="issue-title">No Rate Limiting - Vulnerable to Socket Spam & DoS</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">📍 Lokasi:</div>
+                    <div class="location">apps/server/src/index.ts (Lines 42-47)</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">⚠️ Masalah:</div>
+                    <div class="code-block bad">
+                        <div class="code-label bad">❌ Current Code (No Protection):</div>
+<pre>io.on("connection", (socket) => {
+  console.log(`Player connected: ${socket.id}`);
+  registerRoomHandlers(io, socket);
+  registerGameHandlers(io, socket);
+  // ❌ Zero rate limiting!
+});</pre>
+                    </div>
+                </div>
+
+                <div class="description">
+                    <strong>Risiko:</strong> Tidak ada batasan berapa kali player bisa emit event. Akibatnya:
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li><strong>Socket Spam:</strong> Player bisa emit <code>game:start</code> 1000x per detik</li>
+                        <li><strong>Resource Exhaustion:</strong> Server keteteran process event, memory penuh</li>
+                        <li><strong>DoS Attack:</strong> Attacker bisa crash server dengan simple bot</li>
+                    </ul>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">✅ Solusi & Contoh Kode:</div>
+                    <div class="code-block good">
+                        <div class="code-label good">✓ Rate Limiter Utility:</div>
+<pre>type RateLimitConfig = {
+  maxEvents: number;
+  windowMs: number;
+};
+
+function createRateLimiter(config: RateLimitConfig) {
+  return {
+    attempts: new Map<string, number[]>(),
+
+    isAllowed(socketId: string): boolean {
+      const now = Date.now();
+      const key = socketId;
+
+      if (!this.attempts.has(key)) {
+        this.attempts.set(key, [now]);
+        return true;
+      }
+
+      const timestamps = this.attempts.get(key)!;
+      const recentAttempts = timestamps.filter(
+        (t) => now - t < config.windowMs
+      );
+
+      if (recentAttempts.length >= config.maxEvents) {
+        return false;
+      }
+
+      recentAttempts.push(now);
+      this.attempts.set(key, recentAttempts);
+      return true;
+    }
+  };
+}</pre>
+                    </div>
+
+                    <div class="code-block good">
+                        <div class="code-label good">✓ Handler Implementation:</div>
+<pre>// Create limiters per event type
+const bellRateLimiter = createRateLimiter({
+  maxEvents: 1,
+  windowMs: 1000  // 1 press per second
+});
+
+const chatRateLimiter = createRateLimiter({
+  maxEvents: 5,
+  windowMs: 1000  // 5 messages per second
+});
+
+const joinRateLimiter = createRateLimiter({
+  maxEvents: 2,
+  windowMs: 5000  // 2 joins per 5 seconds
+});
+
+// Use in handlers:
+export function registerGameHandlers(
+  io: Server, 
+  socket: Socket
+) {
+  socket.on("game:bell", async () => {
+    if (!bellRateLimiter.isAllowed(socket.id)) {
+      socket.emit("game:error", {
+        message: "Too many bell presses"
+      });
+      return;
+    }
+    // Process bell press...
+  });
+
+  socket.on("game:chat", async ({ text }) => {
+    if (!chatRateLimiter.isAllowed(socket.id)) {
+      socket.emit("game:error", {
+        message: "Sending too fast"
+      });
+      return;
+    }
+    // Process chat...
+  });
+}</pre>
+                    </div>
+                </div>
+
+                <div class="impact-box">
+                    <strong>🎯 Alasan Perbaikan:</strong> Rate limiting melindungi server dari abuse dan memastikan fair experience untuk semua pemain. Mencegah DoS attacks dan resource exhaustion.
+                </div>
+            </div>
+
+            <!-- Issue 4 -->
+            <div class="issue critical">
+                <div class="issue-header">
+                    <div class="issue-number">4</div>
+                    <div class="issue-title">Room Code Too Short - Trivial Brute Force</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">📍 Lokasi:</div>
+                    <div class="location">apps/server/src/rooms/roomManager.redis.ts (Lines 10-12)</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">⚠️ Masalah:</div>
+                    <div class="code-block bad">
+                        <div class="code-label bad">❌ Insecure Room Code (Only 4 chars):</div>
+<pre>function generateRoomCode(): string {
+  // Only 4 characters = 36^4 = 1.67M combinations
+  // Brute-forceable in 4-5 hours!
+  return Math.random()
+    .toString(36)
+    .substring(2, 6)
+    .toUpperCase();
+}</pre>
+                    </div>
+                </div>
+
+                <div class="description">
+                    <strong>Risiko:</strong> Room code hanya <strong>4 karakter alphanumeric</strong> = 36^4 = ~1.67 juta kombinasi:
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li>Attacker bisa try 100 room codes per detik</li>
+                        <li>Dalam 4-5 jam, semua private rooms bisa di-brute force</li>
+                        <li>Weak entropy untuk protecting private games</li>
+                    </ul>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">✅ Solusi & Contoh Kode:</div>
+                    <div class="code-block good">
+                        <div class="code-label good">✓ Secure Room Code Generator:</div>
+<pre>import { randomBytes } from 'crypto';
+
+function generateRoomCode(): string {
+  // 8 characters = 36^8 = 2.8 Trillion combinations
+  // Brute-force would take millions of years
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const length = 8;
+  let code = '';
+  
+  const randomValues = new Uint32Array(1);
+  for (let i = 0; i < length; i++) {
+    crypto.getRandomValues(randomValues);
+    code += chars[randomValues[0] % chars.length];
+  }
+  
+  return code;
+}
+
+// Example outputs:
+// "A7X3K9M2"
+// "Q2P8L5R1"
+// "Z4W7J9S6"</pre>
+                    </div>
+                </div>
+
+                <div class="impact-box">
+                    <strong>🎯 Alasan Perbaikan:</strong> Longer codes exponentially increase brute-force effort. 8 chars = ~2.8 triliun kombinasi, making brute-force impractical (impossible dalam praktik).
+                </div>
+            </div>
+
+            <!-- Issue 5 -->
+            <div class="issue critical">
+                <div class="issue-header">
+                    <div class="issue-number">5</div>
+                    <div class="issue-title">Memory Leak: Timer Intervals Not Always Cleared</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">📍 Lokasi:</div>
+                    <div class="location">apps/server/src/game/gameHandlers.ts (Lines 7-25)</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">⚠️ Masalah:</div>
+                    <div class="code-block bad">
+                        <div class="code-label bad">❌ Potential Memory Leak:</div>
+<pre>function startTimer(io: Server, roomId: string) {
+  clearRoomTimer(roomId);  // ✓ Clear old
+  
+  const interval = setInterval(() => {
+    const remaining = tickTimer(roomId);
+    const state = getGameState(roomId);
+    
+    if (!state) {
+      clearRoomTimer(roomId);  // ✓ OK
+      return;
+    }
+    
+    if (remaining <= 0) {
+      clearRoomTimer(roomId);
+      handleTimerExpired(io, roomId);
+    }
+    // BUT: Many edge cases NOT handled!
+  }, 1000);
+
+  setTimerInterval(roomId, interval);
+}
+
+// Issues:
+// - deleteGameState() called but timer still running
+// - Player disconnect not cleaning up timers
+// - 100 games × many timers = memory exhausted</pre>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">✅ Solusi & Contoh Kode:</div>
+                    <div class="code-block good">
+                        <div class="code-label good">✓ Robust Timer Management:</div>
+<pre>function startGameTimer(
+  io: Server,
+  roomId: string,
+  onTimerExpired: (io: Server, roomId: string) => void,
+) {
+  // Always clear old timer first
+  const existingInterval = timerIntervals.get(roomId);
+  if (existingInterval) {
+    clearInterval(existingInterval);
+    timerIntervals.delete(roomId);
+  }
+
+  const interval = setInterval(() => {
+    try {
+      const state = getGameState(roomId);
+      
+      // Stop timer if state is gone
+      if (!state) {
+        clearInterval(interval);
+        timerIntervals.delete(roomId);
+        return;
+      }
+
+      const remaining = tickTimer(roomId);
+      
+      // Only emit on important changes
+      if (remaining % 5 === 0 || remaining <= 5) {
+        io.to(roomId).emit("game:timer", {
+          seconds: remaining,
+          startTime: state.startTime,
+        });
+      }
+
+      // Clean up when timer expires
+      if (remaining <= 0) {
+        clearInterval(interval);
+        timerIntervals.delete(roomId);
+        onTimerExpired(io, roomId);
+      }
+    } catch (error) {
+      console.error(`Timer error for ${roomId}:`, error);
+      clearInterval(interval);
+      timerIntervals.delete(roomId);
+    }
+  }, 1000);
+
+  timerIntervals.set(roomId, interval);
+
+  // Safety: Auto-cleanup after max duration
+  setTimeout(() => {
+    if (timerIntervals.has(roomId)) {
+      const interval = timerIntervals.get(roomId);
+      if (interval) clearInterval(interval);
+      timerIntervals.delete(roomId);
+    }
+  }, 60 * 60 * 1000);  // 1 hour max
+}
+
+// Ensure cleanup when game ends
+export function deleteGameState(roomId: string): void {
+  const interval = timerIntervals.get(roomId);
+  if (interval) {
+    clearInterval(interval);
+    timerIntervals.delete(roomId);
+  }
+  gameStates.delete(roomId);
+}</pre>
+                    </div>
+                </div>
+
+                <div class="impact-box">
+                    <strong>🎯 Alasan Perbaikan:</strong> Mencegah memory leak yang bisa crash server setelah banyak games dimainkan. Critical untuk production stability.
+                </div>
+            </div>
+        </section>
+
+        <!-- SUGGESTIONS -->
+        <section>
+            <h2 class="section-title suggestions">🟡 SARAN PERBAIKAN (Suggestions)</h2>
+            <p style="margin-bottom: 20px; color: #7f8c8d;">Isu-isu berikut merupakan peningkatan kualitas code yang sangat disarankan. Tidak urgent tapi penting untuk maintainability dan performance jangka panjang.</p>
+
+            <!-- Suggestion 1 -->
+            <div class="issue suggestion">
+                <div class="issue-header">
+                    <div class="issue-number">1</div>
+                    <div class="issue-title">Redundant Timer Code - DRY Principle Violation</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">📍 Lokasi:</div>
+                    <div class="location">apps/server/src/game/gameHandlers.ts (Lines 7-50)</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">⚠️ Masalah:</div>
+                    <div class="code-block bad">
+                        <div class="code-label bad">❌ Duplicate Code (80% same!):</div>
+<pre>function startTimer(io, roomId) {
+  clearRoomTimer(roomId);
+  const interval = setInterval(() => {
+    // ... 40 lines of IDENTICAL logic ...
+    if (remaining <= 0) {
+      handleTimerExpired(io, roomId);  // Different
+    }
+  }, 1000);
+}
+
+export function startPvpTimer(io, roomId) {
+  clearRoomTimer(roomId);
+  const interval = setInterval(() => {
+    // ... SAME 40 lines again ...
+    if (remaining <= 0) {
+      handlePvpTimerExpired(io, roomId);  // Different
+    }
+  }, 1000);
+}</pre>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">✅ Solusi - Extract Generic Timer:</div>
+                    <div class="code-block good">
+                        <div class="code-label good">✓ DRY Refactored (Single Function):</div>
+<pre>function startGameTimer(
+  io: Server,
+  roomId: string,
+  onTimerExpired: (io: Server, roomId: string) => void,
+) {
+  clearRoomTimer(roomId);
+  
+  const interval = setInterval(() => {
+    const remaining = tickTimer(roomId);
+    const state = getGameState(roomId);
+    
+    if (!state) {
+      clearRoomTimer(roomId);
+      return;
+    }
+
+    if (remaining % 5 === 0 || remaining <= 5) {
+      io.to(roomId).emit("game:timer", {
+        seconds: remaining,
+        startTime: state.startTime,
+      });
+    }
+
+    if (remaining <= 0) {
+      clearRoomTimer(roomId);
+      // ✅ Flexible callback!
+      onTimerExpired(io, roomId);
+    }
+  }, 1000);
+
+  setTimerInterval(roomId, interval);
+}
+
+// Usage:
+startGameTimer(io, roomId, handleTimerExpired);
+startGameTimer(io, roomId, handlePvpTimerExpired);</pre>
+                    </div>
+                </div>
+
+                <div class="impact-box">
+                    <strong>🎯 Alasan:</strong> Mengurangi boilerplate 50%, mempermudah maintenance, single source of truth untuk timer logic.
+                </div>
+            </div>
+
+            <!-- Suggestion 2 -->
+            <div class="issue suggestion">
+                <div class="issue-header">
+                    <div class="issue-number">2</div>
+                    <div class="issue-title">JSON Parse/Stringify Bottleneck in Redis</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">📍 Lokasi:</div>
+                    <div class="location">apps/server/src/rooms/roomManager.redis.ts (Lines 13-40)</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">⚠️ Masalah:</div>
+                    <div class="code-block bad">
+                        <div class="code-label bad">❌ JSON Operations on Critical Path:</div>
+<pre>export async function joinRoom(
+  roomId: string,
+  player: Player,
+  code?: string
+) {
+  // ❌ Read from Redis (JSON.parse)
+  const raw = await redis.get(KEYS.room(roomId));
+  const room = JSON.parse(raw);
+  
+  room.players.push(player);
+  
+  // ❌ Write to Redis (JSON.stringify)
+  await redis.set(KEYS.room(room.id),
+    JSON.stringify(room)
+  );
+  await redis.set(KEYS.playerRoom(player.id),
+    room.id
+  );
+}
+
+// In high-traffic:
+// 100 concurrent joins = 200+ JSON operations
+// Each operation blocks execution
+// = severe bottleneck!</pre>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">✅ Solusi - Implement Caching Layer:</div>
+                    <div class="code-block good">
+                        <div class="code-label good">✓ Optimized with In-Memory Cache:</div>
+<pre>class RoomCache {
+  private cache = new Map<string, Room>();
+  private dirty = new Set<string>();
+
+  async get(roomId: string): Promise<Room | null> {
+    // ✅ Check memory cache first
+    if (this.cache.has(roomId)) {
+      return this.cache.get(roomId)!;
+    }
+
+    // Fetch from Redis if not cached
+    const raw = await redis.get<string>(
+      KEYS.room(roomId)
+    );
+    if (!raw) return null;
+
+    // Parse once and cache
+    const room = JSON.parse(raw);
+    this.cache.set(roomId, room);
+    return room;
+  }
+
+  set(room: Room): void {
+    // Keep in-memory version
+    this.cache.set(room.id, room);
+    // Mark for batch save
+    this.dirty.add(room.id);
+  }
+
+  async flush(): Promise<void> {
+    // ✅ Batch save all dirty rooms at once
+    const updates: Array<[string, string]> = [];
+    
+    for (const roomId of this.dirty) {
+      const room = this.cache.get(roomId);
+      if (room) {
+        updates.push([
+          KEYS.room(roomId),
+          JSON.stringify(room),
+        ]);
+      }
+    }
+
+    // Single Redis call for all updates
+    if (updates.length > 0) {
+      await redis.mset(updates.flat());
+    }
+
+    this.dirty.clear();
+  }
+}
+
+// Flush every 5 seconds
+const roomCache = new RoomCache();
+setInterval(() => roomCache.flush(), 5000);
+
+// Usage in handlers:
+export async function joinRoom(
+  roomId: string,
+  player: Player
+) {
+  const room = await roomCache.get(roomId);
+  if (!room) {
+    return { success: false, error: "Not found" };
+  }
+
+  room.players.push(player);
+  roomCache.set(room);  // ✅ Mark dirty
+
+  return { success: true, room };
+}</pre>
+                    </div>
+                </div>
+
+                <div class="impact-box">
+                    <strong>🎯 Alasan:</strong> Batch operations lebih efficient, mengurangi JSON overhead, better performance at scale.
+                </div>
+            </div>
+
+            <!-- Suggestion 3 -->
+            <div class="issue suggestion">
+                <div class="issue-header">
+                    <div class="issue-number">3</div>
+                    <div class="issue-title">No Input Type Validation on GameState</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">📍 Lokasi:</div>
+                    <div class="location">apps/server/src/game/gameHandlers.ts (Lines 115-140)</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">⚠️ Masalah:</div>
+                    <div class="code-block bad">
+                        <div class="code-label bad">❌ No Type Guards:</div>
+<pre>socket.on("game:bell", async () => {
+  const state = getGameState(roomId);
+  
+  // ❌ Assuming state is always valid!
+  if (state.bellPressers.includes(playerId)) { }
+  if (state.phase !== "playing") { }
+  
+  // If state is null or wrong structure
+  // → Runtime crash, user gets blank screen
+});</pre>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">✅ Solusi - Add Type Guards:</div>
+                    <div class="code-block good">
+                        <div class="code-label good">✓ Type Guard Implementation:</div>
+<pre>// Define strict type guard
+function isValidGameState(
+  state: any
+): state is GameState {
+  return (
+    state &&
+    typeof state === 'object' &&
+    Array.isArray(state.bellPressers) &&
+    Array.isArray(state.candidates) &&
+    typeof state.phase === 'string' &&
+    typeof state.timer === 'number' &&
+    Array.isArray(state.proofs) &&
+    typeof state.scores === 'object' &&
+    Array.isArray(state.roundScores) &&
+    Array.isArray(state.pointingTargets)
+  );
+}
+
+socket.on("game:bell", async () => {
+  const state = getGameState(roomId);
+  
+  // ✅ Validate before use
+  if (!state || !isValidGameState(state)) {
+    socket.emit("game:error", {
+      message: "Invalid game state"
+    });
+    return;
+  }
+
+  // ✅ Now TypeScript knows state is valid
+  if (state.phase !== "playing") {
+    socket.emit("game:error", {
+      message: "Not in playing phase"
+    });
+    return;
+  }
+
+  // ✅ Safe to use all properties
+  pressBell(roomId, socket.id, room!.players.length);
+});</pre>
+                    </div>
+                </div>
+
+                <div class="impact-box">
+                    <strong>🎯 Alasan:</strong> Defensive programming mencegah runtime errors. TypeScript akan help catch bugs at compile time.
+                </div>
+            </div>
+
+            <!-- Suggestion 4 -->
+            <div class="issue suggestion">
+                <div class="issue-header">
+                    <div class="issue-number">4</div>
+                    <div class="issue-title">Scattered Magic Numbers - Use Constants</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">📍 Lokasi:</div>
+                    <div class="location">Multiple files (gameHandlers.ts, gameManager.ts, WaitingRoom.tsx)</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">⚠️ Masalah:</div>
+                    <div class="code-block bad">
+                        <div class="code-label bad">❌ Magic Numbers Scattered Everywhere:</div>
+<pre>// gameHandlers.ts
+setTimeout(() => {
+  io.to(roomId).emit("game:round-start", {});
+}, 3000);  // ❌ Apa 3000? Round delay?
+
+// gameManager.ts
+state.totalRounds = Math.floor(deck.length / 4) + 1;
+//                                              ↑
+//                                        Why +1?
+
+// WaitingRoom.tsx
+setTimeout(() => setCopied(false), 2500);
+//                                 ↑
+//                          Toast duration?
+
+// Hard to understand, hard to maintain, hard to refactor</pre>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">✅ Solusi - Centralized Constants:</div>
+                    <div class="code-block good">
+                        <div class="code-label good">✓ Constants Files:</div>
+<pre>// constants/gameTimings.ts
+export const GAME_TIMINGS = {
+  // Round delays
+  ROUND_RESULT_DELAY_MS: 3000,
+  ROUND_START_DELAY_MS: 2000,
+  
+  // Timer settings
+  TIMER_EMIT_INTERVAL_MS: 1000,
+  TIMER_BATCH_EMIT_THRESHOLD: 5,
+  
+  // UI notifications
+  TOAST_NOTIFICATION_DURATION_MS: 2500,
+  COPY_SUCCESS_DURATION_MS: 2500,
+  
+  // Safety
+  AUTO_CLEANUP_TIMEOUT_MS: 60 * 60 * 1000,  // 1 hour
+} as const;
+
+// constants/gameRules.ts
+export const GAME_RULES = {
+  // Deck composition
+  CARDS_PER_ROUND: 4,
+  DECK_SUITS: 4,
+  DECK_VALUES_CASUAL: 10,
+  DECK_VALUES_WILD: 13,
+  CARDS_IN_DECK: 52,  // or 52 * 13/10
+} as const;
+
+// constants/gamePhases.ts
+export const GAME_PHASES = {
+  PLAYING: 'playing',
+  POINTING: 'pointing',
+  PROOF: 'proof',
+  RESULT: 'result',
+  PVP: 'pvp',
+  FINISHED: 'finished',
+} as const;</pre>
+                    </div>
+
+                    <div class="code-block good">
+                        <div class="code-label good">✓ Usage Examples:</div>
+<pre>// gameHandlers.ts
+setTimeout(() => {
+  io.to(roomId).emit("game:round-start", {});
+}, GAME_TIMINGS.ROUND_RESULT_DELAY_MS);  // ✅ Clear!
+
+// gameManager.ts
+const totalRounds = Math.floor(
+  deck.length / GAME_RULES.CARDS_PER_ROUND
+) + 1;  // ✅ Self-documenting!
+
+// WaitingRoom.tsx
+setTimeout(
+  () => setCopied(false),
+  GAME_TIMINGS.TOAST_NOTIFICATION_DURATION_MS
+);  // ✅ Obvious intent!</pre>
+                    </div>
+                </div>
+
+                <div class="impact-box">
+                    <strong>🎯 Alasan:</strong> Self-documenting code, easier refactoring, maintainability tinggi. Single source of truth untuk constants.
+                </div>
+            </div>
+
+            <!-- Suggestion 5 -->
+            <div class="issue suggestion">
+                <div class="issue-header">
+                    <div class="issue-number">5</div>
+                    <div class="issue-title">Callback Hell in GameContext - Complex useEffect</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">📍 Lokasi:</div>
+                    <div class="location">apps/client/src/context/GameContext.tsx (Lines 169-250)</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">⚠️ Masalah:</div>
+                    <div class="code-block bad">
+                        <div class="code-label bad">❌ Callback Hell - 500+ Lines in One useEffect:</div>
+<pre>export function GameProvider({ children }) {
+  const [gameState, setGameState] = useState(null);
+  const [timer, setTimer] = useState(0);
+  const [phase, setPhase] = useState(null);
+
+  useEffect(() => {
+    const onGameStarted = () => {
+      // 30 lines...
+      setGameState({ ...EMPTY_GAME_STATE });
+    };
+
+    const onRoundStart = (data) => {
+      // 20 lines...
+      setGameState((prev) => ({
+        ...prev,
+        currentCards: data.cards,
+      }));
+    };
+
+    const onPhaseChanged = (data) => {
+      // 15 lines...
+      setPhase(data.phase);
+    };
+
+    const onTimer = (data) => {
+      // 10 lines...
+      setTimer(data.seconds);
+    };
+
+    // ... 15+ more handlers ...
+
+    socket.on("game:started", onGameStarted);
+    socket.on("game:round-start", onRoundStart);
+    // ... cleanup ...
+
+    return () => {
+      socket.off("game:started", onGameStarted);
+      socket.off("game:round-start", onRoundStart);
+      // ... cleanup ...
+    };
+  }, []);
+
+  // Result: 500+ lines, hard to navigate, hard to test
+}</pre>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">✅ Solusi - Extract Custom Hooks:</div>
+                    <div class="code-block good">
+                        <div class="code-label good">✓ Custom Hook Refactoring:</div>
+<pre>// hooks/useGameSocket.ts
+export function useGameSocket() {
+  const [gameState, setGameState] = useState<GameState | null>(null);
+  const [timer, setTimer] = useState(0);
+  const [phase, setPhase] = useState<GamePhase | null>(null);
+
+  useEffect(() => {
+    // ✅ Each handler is small and focused
+    const handlers = {
+      onGameStarted: () => {
+        setGameState({ ...EMPTY_GAME_STATE });
+      },
+      onRoundStart: (data: RoundStartPayload) => {
+        setGameState((prev) =>
+          prev ? { ...prev, currentCards: data.cards } : null
+        );
+      },
+      onPhaseChanged: (data: PhaseChangedPayload) => {
+        setPhase(data.phase);
+        setGameState((prev) =>
+          prev ? { ...prev, phase: data.phase } : null
+        );
+      },
+      onTimer: (data: { seconds: number }) => {
+        setTimer(data.seconds);
+      },
+    };
+
+    // Attach listeners
+    socket.on("game:started", handlers.onGameStarted);
+    socket.on("game:round-start", handlers.onRoundStart);
+    socket.on("game:phase-changed", handlers.onPhaseChanged);
+    socket.on("game:timer", handlers.onTimer);
+
+    // Cleanup
+    return () => {
+      socket.off("game:started", handlers.onGameStarted);
+      socket.off("game:round-start", handlers.onRoundStart);
+      socket.off("game:phase-changed", handlers.onPhaseChanged);
+      socket.off("game:timer", handlers.onTimer);
+    };
+  }, []);
+
+  return { gameState, timer, phase };
+}
+
+// GameProvider now becomes much cleaner:
+export function GameProvider({ children }) {
+  const { gameState, timer, phase } = useGameSocket();
+
+  return (
+    <GameContext.Provider value={{ gameState, timer, phase }}>
+      {children}
+    </GameContext.Provider>
+  );
+}</pre>
+                    </div>
+                </div>
+
+                <div class="impact-box">
+                    <strong>🎯 Alasan:</strong> Improve readability, testability, maintainability. Each hook punya single responsibility.
+                </div>
+            </div>
+
+            <!-- Suggestion 6 -->
+            <div class="issue suggestion">
+                <div class="issue-header">
+                    <div class="issue-number">6</div>
+                    <div class="issue-title">No Error Boundary in React - Silent Crashes</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">📍 Lokasi:</div>
+                    <div class="location">apps/client/src/App.tsx (Assumed)</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">⚠️ Masalah:</div>
+                    <div class="code-block bad">
+                        <div class="code-label bad">❌ No Error Boundaries = Silent Crashes:</div>
+<pre>export function App() {
+  return (
+    <RoomProvider>
+      <GameProvider>
+        {/* routes */}
+      </GameProvider>
+    </RoomProvider>
+  );
+}
+
+// Problem:
+// If GameContext throws error
+// → Entire UI becomes blank screen
+// → Error not tracked
+// → User has no idea what happened
+// → Debugging is nightmare</pre>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">✅ Solusi - Create Error Boundary:</div>
+                    <div class="code-block good">
+                        <div class="code-label good">✓ Error Boundary Component:</div>
+<pre>import React, { ReactNode } from 'react';
+
+interface ErrorBoundaryProps {
+  children: ReactNode;
+  fallback?: (error: Error) => ReactNode;
+}
+
+interface ErrorBoundaryState {
+  error: Error | null;
+}
+
+export class ErrorBoundary extends React.Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { error: null };
+  }
+
+  static getDerivedStateFromError(
+    error: Error
+  ): ErrorBoundaryState {
+    return { error };
+  }
+
+  componentDidCatch(
+    error: Error,
+    errorInfo: React.ErrorInfo
+  ) {
+    // Log to Sentry, LogRocket, Rollbar, etc
+    console.error('Boundary caught error:', error);
+    logErrorToService(error, errorInfo);
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="error-screen flex items-center 
+                        justify-center min-h-screen bg-red-50">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-red-600 mb-4">
+              Oops! Something went wrong
+            </h1>
+            <p className="text-gray-600 mb-6">
+              {this.state.error.message}
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-2 bg-blue-500 text-white 
+                         rounded hover:bg-blue-600"
+            >
+              Reload Page
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// Usage in App.tsx:
+export function App() {
+  return (
+    <ErrorBoundary>
+      <RoomProvider>
+        <GameProvider>
+          {/* routes */}
+        </GameProvider>
+      </RoomProvider>
+    </ErrorBoundary>
+  );
+}</pre>
+                    </div>
+                </div>
+
+                <div class="impact-box">
+                    <strong>🎯 Alasan:</strong> Gracefully handle render errors. User tidak melihat blank screen, bisa reload. Error dapat di-track dan di-fix.
+                </div>
+            </div>
+
+            <!-- Suggestion 7 -->
+            <div class="issue suggestion">
+                <div class="issue-header">
+                    <div class="issue-number">7</div>
+                    <div class="issue-title">Batch Room State Updates to Redis</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">📍 Lokasi:</div>
+                    <div class="location">apps/server/src/rooms/roomManager.redis.ts</div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">⚠️ Masalah:</div>
+                    <div class="code-block bad">
+                        <div class="code-label bad">❌ Multiple Redis Calls:</div>
+export async function joinRoom(
+    roomId, player, code
+) {
+    const raw = await redis.get(
+        KEYS.room(roomId)
+    );  // Call 1
+    
+    room.players.push(player);
+    
+    await redis.set(
+        KEYS.room(room.id), 
+        JSON.stringify(room)
+    );  // Call 2
+    await redis.set(
+        KEYS.playerRoom(player.id), 
+        room.id
+    );  // Call 3
+}
+
+// 3 Redis round trips = latency overhead
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <div class="subsection-title">✅ Solusi - Use Redis Pipeline:</div>
+                    <div class="code-block good">
+                        <div class="code-label good">✓ Batched Operations:</div>
+<pre>export async function joinRoom(
+  roomId: string,
+  player: Player,
+  code?: string
+): Promise<JoinResult> {
+  // Read is still individual
+  const raw = await redis.get(KEYS.room(roomId));
+  if (!raw) {
+    return { success: false, error: "Not found" };
+  }
+
+  const room: Room = JSON.parse(raw);
+
+  // Validate...
+  if (room.players.length >= room.maxPlayers) {
+    return { success: false, error: "Room full" };
+  }
+
+  room.players.push(player);
+
+  // ✅ Batch writes in one pipeline
+  const pipeline = redis.pipeline();
+  
+  pipeline.set(
+    KEYS.room(room.id),
+    JSON.stringify(room)
+  );
+  
+  pipeline.set(
+    KEYS.playerRoom(player.id),
+    room.id
+  );
+  
+  // ✅ Execute all at once
+  await pipeline.exec();
+
+  return { success: true, room };
+}
+
+// Result: 1 Redis round trip instead of 2!
+// Less latency, better throughput</pre>
+                    </div>
+                </div>
+
+                <div class="impact-box">
+                    <strong>🎯 Alasan:</strong> Reduce Redis round trips, faster response time, better throughput untuk concurrent operations.
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p><strong>Code Review Report - Who Can Make24</strong></p>
+            <p>Generated: 12 Juni 2026 | Review Scope: Full Project (Client + Server + Shared)</p>
+            <p style="margin-top: 10px; font-size: 0.85em;">Prepared by: Senior Software Engineer | Next Review: After Critical Issues Fixed</p>
+        </footer>
+    </div>
+</body>
+</html>

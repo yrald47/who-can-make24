@@ -1,5 +1,5 @@
 import { Server, Socket } from "socket.io";
-import { GAME_CONSTANTS } from "@who-can-make24/shared";
+import { VALID_AVATARS, GAME_CONSTANTS } from "@who-can-make24/shared";
 import type { Player } from "@who-can-make24/shared";
 import {
     createRoom,
@@ -24,6 +24,11 @@ import {
     clearRoomTimer,
     initPvpState,
 } from "../game/gameManager";
+import {
+    createRoomRateLimiter,
+    joinRateLimiter,
+    clearAllRateLimits,
+} from "../lib/rateLimiter";
 
 export function registerRoomHandlers(io: Server, socket: Socket) {
     function makePlayer(name: string, avatar: string): Player {
@@ -37,10 +42,69 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
         };
     }
 
+    function validatePlayerName(name: string): {
+        valid: boolean;
+        error?: string;
+    } {
+        if (!name || typeof name !== "string")
+            return { valid: false, error: "Name required" };
+        if (name.length < 2 || name.length > 20)
+            return { valid: false, error: "Name must be 2-20 chars" };
+        if (!/^[\p{L}\p{N}\s_-]+$/u.test(name))
+            return { valid: false, error: "Invalid characters" };
+        return { valid: true };
+    }
+
+    function validateRoomName(name: string): {
+        valid: boolean;
+        error?: string;
+    } {
+        if (!name || typeof name !== "string")
+            return { valid: false, error: "Room name required" };
+        if (name.length < 3 || name.length > 30)
+            return { valid: false, error: "Room name must be 3-30 chars" };
+        if (!/^[\p{L}\p{N}\s_-]+$/u.test(name))
+            return { valid: false, error: "Invalid characters" };
+        return { valid: true };
+    }
+
+    // Validasi avatar (harus emoji/unicode yang valid)
+    // const VALID_AVATARS = ["🎮", "🎯", "🚀", "⚡", "🔥", "💎", "🎪", "🎨"];
+    function validateAvatar(avatar: string): boolean {
+        return (VALID_AVATARS as readonly string[]).includes(avatar);
+    }
+
     // CREATE ROOM
     socket.on(
         "room:create",
         async ({ name, roomName, avatar, mode, isPrivate, isWild }) => {
+            if (!createRoomRateLimiter.isAllowed(socket.id)) {
+                socket.emit("room:error", {
+                    message: "Too many rooms created. Try again later.",
+                });
+                return;
+            }
+            const nameValidation = validatePlayerName(name);
+            if (!nameValidation.valid) {
+                socket.emit("room:error", { message: nameValidation.error });
+                return;
+            }
+
+            const roomValidation = validateRoomName(roomName);
+            if (!roomValidation.valid) {
+                socket.emit("room:error", { message: roomValidation.error });
+                return;
+            }
+
+            if (!validateAvatar(avatar)) {
+                socket.emit("room:error", { message: "Invalid avatar" });
+                return;
+            }
+
+            if (!["casual", "pvp"].includes(mode)) {
+                socket.emit("room:error", { message: "Invalid game mode" });
+                return;
+            }
             const host: Player = { ...makePlayer(name, avatar), isHost: true };
             const room = await createRoom(
                 roomName,
@@ -64,6 +128,12 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
 
     // JOIN ROOM
     socket.on("room:join", async ({ roomId, name, avatar, code, viaLink }) => {
+        if (!joinRateLimiter.isAllowed(socket.id)) {
+            socket.emit("room:error", {
+                message: "Joining too fast. Try again shortly.",
+            });
+            return;
+        }
         const player = makePlayer(name, avatar);
         const result = await joinRoom(roomId, player, code);
 
@@ -315,6 +385,7 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
 
     // DISCONNECT
     socket.on("disconnect", async () => {
+        clearAllRateLimits(socket.id);
         console.log(`Disconnect handler called for ${socket.id}`);
         const currentRoom = await getRoomByPlayerId(socket.id);
         console.log(`Room found for disconnecting player: ${currentRoom?.id}`);

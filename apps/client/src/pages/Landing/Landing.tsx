@@ -7,6 +7,7 @@ import { useRoomContext } from "../../context/useRoomContext";
 import { loadIdentity } from "../../lib/identity";
 import { Footer } from "../../components/Footer/Footer";
 import { TrainingPanel } from "./TrainingPanel";
+// import { Toaster } from "sonner";
 
 const AVATARS = ["😀", "🤓", "😎", "🧐", "🥸", "🤩", "😏", "🤯"];
 const MODES: { value: Room["mode"]; label: string; disabled?: boolean }[] = [
@@ -18,7 +19,7 @@ const MODES: { value: Room["mode"]; label: string; disabled?: boolean }[] = [
 export function Landing() {
     const { connected } = useSocket();
     const [showRoomSheet, setShowRoomSheet] = useState(false);
-    const { rooms, error, createRoom, joinRoom } = useRoomContext();
+    const { rooms, createRoom, joinRoom } = useRoomContext();
 
     const [name, setName] = useState(() => {
         const identity = loadIdentity();
@@ -63,6 +64,19 @@ export function Landing() {
         const t = setTimeout(() => setPvpMsg(null), 4000);
         return () => clearTimeout(t);
     }, [pvpMsg]);
+
+    // Show error toast when error changes
+    // useEffect(() => {
+    //     if (error && error.trim() !== "") {
+    //         toast.error(error, {
+    //             duration: 5000, // Auto dismiss after 5 seconds
+    //             action: {
+    //                 label: "Dismiss",
+    //                 onClick: () => {},
+    //             },
+    //         });
+    //     }
+    // }, [error]);
 
     function handleJumpIn() {
         if (!name.trim()) return;
@@ -193,11 +207,16 @@ export function Landing() {
                                 Sign in with Google
                             </button>
 
-                            {error && (
-                                <p className="text-xs text-game-coral">
-                                    {error}
-                                </p>
-                            )}
+                            {/* {error &&
+                                // <p className="text-xs text-game-coral">
+                                //     {error}
+                                // </p>
+                                toast.error(error, {
+                                    cancel: {
+                                        label: "Dismiss",
+                                        onClick: () => {}, // Kosongkan saja fungsinya, toast langsung otomatis hilang
+                                    },
+                                })} */}
 
                             {/* What is this — worn paper */}
                             {/* What is this / Training — flip di mobile */}

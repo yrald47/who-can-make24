@@ -4,6 +4,7 @@ import { Landing } from "./pages/Landing/Landing";
 import { WaitingRoom } from "./pages/WaitingRoom/WaitingRoom";
 import { Game } from "./pages/Game/Game";
 import { GameOver } from "./pages/Game/GameOver";
+import { Toaster } from "sonner";
 
 function App() {
     const { currentRoom } = useRoomContext();
@@ -38,6 +39,12 @@ function App() {
 
     return (
         <div className="relative min-h-screen">
+            <Toaster
+                position="top-center"
+                theme="dark"
+                richColors
+                closeButton
+            />
             {/* Background image */}
             <div className="bg-[url('/bg.svg')] fixed inset-0 bg-cover bg-center -z-10" />
             {/* <div className="fixed inset-0 bg-[url(/bg.svg)] bg-cover bg-center -z-10" /> */}

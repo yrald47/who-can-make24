@@ -4,11 +4,11 @@ import type { Room } from "@who-can-make24/shared";
 import { socket } from "../lib/socket";
 import { RoomContext } from "./roomContextInstance";
 import { loadIdentity, clearRoomId, saveIdentity } from "../lib/identity";
+import { toast } from "sonner";
 
 export interface RoomContextType {
     currentRoom: Room | null;
     rooms: Room[];
-    error: string | null;
     savedIdentity: { name: string; avatar: string } | null;
     createRoom: (
         roomName: string,
@@ -60,7 +60,6 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     console.log("RoomProvider mounted, socket id:", socket.id);
     const [rooms, setRooms] = useState<Room[]>([]);
     const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
-    const [error, setError] = useState<string | null>(null);
     const [savedIdentity] = useState(() => loadIdentity());
     const currentRoomRef = useRef<Room | null>(null);
     // const [isReconnecting, setIsReconnecting] = useState(false);
@@ -167,8 +166,17 @@ export function RoomProvider({ children }: { children: ReactNode }) {
                 return stillInRoom ? room : null;
             });
         };
-        const onRoomError = ({ message }: { message: string }) =>
-            setError(message);
+        
+        const onRoomError = ({ message }: { message: string }) => {
+            toast.error(message, {
+                duration: 5000,
+                action: {
+                    label: "Dismiss",
+                    onClick: () => {}, // Close toast langsung
+                },
+            });
+        };
+        
         const onGameStarted = ({ room }: { room: Room }) => {
             console.log("game:started received", room);
             setCurrentRoom(room);
@@ -279,7 +287,6 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         avatar: string,
         isWild: boolean = false,
     ) {
-        setError(null);
         socket.emit("room:create", { roomName, mode, isPrivate, name, avatar, isWild });
     }
 
@@ -289,7 +296,6 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         avatar: string,
         code?: string,
     ) {
-        setError(null);
         socket.emit("room:join", { roomId, name, avatar, code });
     }
 
@@ -307,7 +313,6 @@ export function RoomProvider({ children }: { children: ReactNode }) {
             value={{
                 currentRoom,
                 rooms,
-                error,
                 createRoom,
                 joinRoom,
                 leaveRoom,

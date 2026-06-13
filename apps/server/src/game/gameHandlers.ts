@@ -27,6 +27,15 @@ import {
     leaveRoom,
     deleteRoom,
 } from "../rooms/roomManager.redis";
+import {
+    bellRateLimiter,
+    chatRateLimiter,
+    proofRateLimiter,
+    pvpProofRateLimiter,
+    surrenderRateLimiter,
+    pvpVoteRateLimiter,
+    pointRateLimiter,
+} from "../lib/rateLimiter";
 
 function getPlayerName(
     room: { players: { id: string; name: string }[] },
@@ -82,7 +91,6 @@ export function startPvpTimer(io: Server, roomId: string) {
 
         if (remaining <= 0) {
             clearRoomTimer(roomId);
-            // Timer PVP habis — tidak ada yang submit, lanjut ronde berikutnya
             handlePvpTimerExpired(io, roomId);
         }
     }, 1000);
@@ -99,7 +107,6 @@ async function handlePvpTimerExpired(io: Server, roomId: string) {
         timestamp: Date.now(),
     });
 
-    // Emit result tanpa poin
     io.to(roomId).emit("game:round-result", {
         roundScores: Object.fromEntries(
             Object.keys(state.scores).map((id) => [id, 0]),
@@ -169,8 +176,8 @@ async function handleTimerExpired(io: Server, roomId: string) {
 
         startTimer(io, roomId);
     } else if (state.phase === "pointing") {
-        const room = await getRoomById(roomId);
-        if (!room) return;
+        // Guard: pastikan tidak double-trigger
+        if (state.phase !== "pointing") return;
 
         const validTargets = state.bellPressers;
         state.candidates.forEach((candidateId) => {
@@ -242,11 +249,7 @@ async function calculateAndEmitRoundResult(io: Server, roomId: string) {
     });
 
     state.roundScores = Object.entries(roundScores).map(
-        ([playerId, delta]) => ({
-            playerId,
-            delta,
-            reason: "",
-        }),
+        ([playerId, delta]) => ({ playerId, delta, reason: "" }),
     );
 
     io.to(roomId).emit("game:log", {
@@ -331,20 +334,15 @@ async function handleUnsolvable(
     }, 3000);
 }
 
-// Trigger PVP offer ke 2 player tersisa
-// Dipanggil dari roomHandlers saat player count turun ke 2 saat game playing
 export async function checkAndOfferPvp(io: Server, roomId: string) {
     const state = getGameState(roomId);
     const room = await getRoomById(roomId);
     if (!state || !room) return;
-    if (state.isPvp) return; // sudah PVP
-    if (room.mode !== "casual") return; // hanya casual yang bisa switch
-    if (room.players.length !== 2) return; // hanya saat tepat 2 player
+    if (state.isPvp) return;
+    if (room.mode !== "casual") return;
+    if (room.players.length !== 2) return;
 
-    // Reset pvp votes
     state.pvpVotes = {};
-
-    // Stop timer sementara
     clearRoomTimer(roomId);
 
     io.to(roomId).emit("game:pvp-offer", {
@@ -356,10 +354,13 @@ export async function checkAndOfferPvp(io: Server, roomId: string) {
 export function registerGameHandlers(io: Server, socket: Socket) {
     // CHAT
     socket.on("game:chat", async ({ text }: { text: string }) => {
+        if (!chatRateLimiter.isAllowed(socket.id)) return;
+        if (typeof text !== "string") return;
+
         const room = await getRoomByPlayerId(socket.id);
         if (!room) return;
 
-        const trimmed = String(text).trim().slice(0, 200);
+        const trimmed = text.trim().slice(0, 200);
         if (!trimmed) return;
 
         const playerName = getPlayerName(room, socket.id);
@@ -374,6 +375,8 @@ export function registerGameHandlers(io: Server, socket: Socket) {
 
     // PENCET BEL
     socket.on("game:bell", async () => {
+        if (!bellRateLimiter.isAllowed(socket.id)) return;
+
         const room = await getRoomByPlayerId(socket.id);
         if (!room) return;
 
@@ -440,6 +443,8 @@ export function registerGameHandlers(io: Server, socket: Socket) {
 
     // SURRENDER
     socket.on("game:surrender", async () => {
+        if (!surrenderRateLimiter.isAllowed(socket.id)) return;
+
         const room = await getRoomByPlayerId(socket.id);
         if (!room) return;
 
@@ -482,12 +487,26 @@ export function registerGameHandlers(io: Server, socket: Socket) {
 
     // MENUNJUK TARGET
     socket.on("game:point", async ({ targetId }: { targetId: string }) => {
+        // Rate limiter — cegah spam ke Redis
+        if (!pointRateLimiter.isAllowed(socket.id)) return;
+
         const room = await getRoomByPlayerId(socket.id);
         if (!room) return;
 
         const state = getGameState(room.id);
+
+        // Guard race condition: pastikan masih di fase pointing
         if (!state || state.phase !== "pointing") return;
+
+        // Pastikan yang menunjuk adalah kandidat
         if (!state.candidates.includes(socket.id)) return;
+
+        // Validasi targetId — harus player valid di room, bukan diri sendiri
+        if (!room.players.some((p) => p.id === targetId)) return;
+        if (targetId === socket.id) return;
+
+        // Kandidat hanya boleh menunjuk sekali
+        if (state.pointingTargets[socket.id]) return;
 
         setPointingTarget(room.id, socket.id, targetId);
 
@@ -504,6 +523,7 @@ export function registerGameHandlers(io: Server, socket: Socket) {
             timestamp: Date.now(),
         });
 
+        // Cek semua kandidat sudah menunjuk
         const allPointed = state.candidates.every(
             (id) => state.pointingTargets[id],
         );
@@ -515,6 +535,12 @@ export function registerGameHandlers(io: Server, socket: Socket) {
 
     // SUBMIT PROOF (casual)
     socket.on("game:prove", async ({ steps }: { steps: ProofStep[] }) => {
+        if (!proofRateLimiter.isAllowed(socket.id)) return;
+
+        // Validasi steps array
+        if (!Array.isArray(steps) || steps.length === 0 || steps.length > 3)
+            return;
+
         const room = await getRoomByPlayerId(socket.id);
         if (!room) return;
 
@@ -534,8 +560,8 @@ export function registerGameHandlers(io: Server, socket: Socket) {
                     s.operator === "*"
                         ? "×"
                         : s.operator === "/"
-                            ? "÷"
-                            : s.operator;
+                          ? "÷"
+                          : s.operator;
                 return i === steps.length - 1
                     ? `${s.a} ${opSymbol} ${s.b} = ${s.result}`
                     : `${s.a} ${opSymbol} ${s.b} → ${s.result}`;
@@ -562,13 +588,14 @@ export function registerGameHandlers(io: Server, socket: Socket) {
 
     // PVP VOTE
     socket.on("game:pvp-vote", async ({ accept }: { accept: boolean }) => {
+        if (!pvpVoteRateLimiter.isAllowed(socket.id)) return;
+
         const room = await getRoomByPlayerId(socket.id);
         if (!room) return;
 
         const state = getGameState(room.id);
         if (!state) return;
 
-        // Kalau decline — langsung kick semua tanpa nunggu vote lain
         if (!accept) {
             clearRoomTimer(room.id);
             deleteGameState(room.id);
@@ -587,7 +614,6 @@ export function registerGameHandlers(io: Server, socket: Socket) {
             return;
         }
 
-        // Accept — update vote dan cek apakah semua sudah accept
         state.pvpVotes[socket.id] = true;
 
         io.to(room.id).emit("game:pvp-vote-update", {
@@ -602,7 +628,6 @@ export function registerGameHandlers(io: Server, socket: Socket) {
         );
         if (!allAccepted) return;
 
-        // Semua accept — start PVP
         const newState = initPvpState(room.id);
         if (!newState) return;
 
@@ -628,7 +653,10 @@ export function registerGameHandlers(io: Server, socket: Socket) {
         }, 1000);
     });
 
+    // PVP SURRENDER
     socket.on("game:pvp-surrender", async () => {
+        if (!surrenderRateLimiter.isAllowed(socket.id)) return;
+
         const room = await getRoomByPlayerId(socket.id);
         if (!room) return;
 
@@ -642,11 +670,6 @@ export function registerGameHandlers(io: Server, socket: Socket) {
 
         io.to(room.id).emit("game:log", {
             text: `${playerName} skipped this hand`,
-            timestamp: Date.now(),
-        });
-
-        io.to(room.id).emit("game:log", {
-            text: "Time's up — skipping hand",
             timestamp: Date.now(),
         });
 
@@ -682,6 +705,12 @@ export function registerGameHandlers(io: Server, socket: Socket) {
 
     // PVP SUBMIT PROOF
     socket.on("game:pvp-prove", async ({ steps }: { steps: ProofStep[] }) => {
+        if (!pvpProofRateLimiter.isAllowed(socket.id)) return;
+
+        // Validasi steps array
+        if (!Array.isArray(steps) || steps.length === 0 || steps.length > 3)
+            return;
+
         const room = await getRoomByPlayerId(socket.id);
         if (!room) return;
 
@@ -704,7 +733,6 @@ export function registerGameHandlers(io: Server, socket: Socket) {
             return;
         }
 
-        // Benar — stop timer, emit result, lanjut ronde
         clearRoomTimer(room.id);
 
         io.to(room.id).emit("game:log", {
