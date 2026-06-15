@@ -44,59 +44,81 @@ function getPlayerName(
     return room.players.find((p) => p.id === playerId)?.name ?? "Unknown";
 }
 
-function startTimer(io: Server, roomId: string) {
+function startGameTimer(io: Server, roomId: string, onExpired: (io: Server, roomId: string) => void,) {
     clearRoomTimer(roomId);
 
     const interval = setInterval(() => {
-        const remaining = tickTimer(roomId);
-        const state = getGameState(roomId);
-        if (!state) {
-            clearRoomTimer(roomId);
-            return;
-        }
+        try {
+            const remaining = tickTimer(roomId);
+            const state = getGameState(roomId);
+            if (!state) {
+                clearRoomTimer(roomId);
+                return;
+            }
 
-        if (remaining % 5 === 0 || remaining <= 5) {
-            io.to(roomId).emit("game:timer", {
-                seconds: remaining,
-                startTime: state.startTime,
-            });
-        }
+            if (remaining % 5 === 0 || remaining <= 5) {
+                io.to(roomId).emit("game:timer", {
+                    seconds: remaining,
+                    startTime: state.startTime,
+                });
+            }
 
-        if (remaining <= 0) {
+            if (remaining <= 0) {
+                clearRoomTimer(roomId);
+                // handleTimerExpired(io, roomId);
+                onExpired(io, roomId);
+            }
+        } catch (error) {
+            console.error(`[timer] Error in room ${roomId}:`, error);
             clearRoomTimer(roomId);
-            handleTimerExpired(io, roomId);
         }
     }, 1000);
 
     setTimerInterval(roomId, interval);
+}
+
+// Public wrappers — dipanggil dari roomHandlers dan internal
+export function startTimer(io: Server, roomId: string) {
+    startGameTimer(io, roomId, handleTimerExpired);
 }
 
 export function startPvpTimer(io: Server, roomId: string) {
-    clearRoomTimer(roomId);
-
-    const interval = setInterval(() => {
-        const remaining = tickTimer(roomId);
-        const state = getGameState(roomId);
-        if (!state) {
-            clearRoomTimer(roomId);
-            return;
-        }
-
-        if (remaining % 5 === 0 || remaining <= 5) {
-            io.to(roomId).emit("game:timer", {
-                seconds: remaining,
-                startTime: state.startTime,
-            });
-        }
-
-        if (remaining <= 0) {
-            clearRoomTimer(roomId);
-            handlePvpTimerExpired(io, roomId);
-        }
-    }, 1000);
-
-    setTimerInterval(roomId, interval);
+    startGameTimer(io, roomId, handlePvpTimerExpired);
 }
+
+// export function startPvpTimer(io: Server, roomId: string) {
+//     clearRoomTimer(roomId);
+
+//     const interval = setInterval(() => {
+//         try {
+//             const remaining = tickTimer(roomId);
+//             const state = getGameState(roomId);
+//             if (!state) {
+//                 clearRoomTimer(roomId);
+//                 return;
+//             }
+    
+//             if (remaining % 5 === 0 || remaining <= 5) {
+//                 io.to(roomId).emit("game:timer", {
+//                     seconds: remaining,
+//                     startTime: state.startTime,
+//                 });
+//             }
+    
+//             if (remaining <= 0) {
+//                 clearRoomTimer(roomId);
+//                 handlePvpTimerExpired(io, roomId);
+//             }
+//         } catch (error) {
+//             console.error(`[PVP timer] Error in room ${roomId}:`, error);
+//             clearRoomTimer(roomId);
+//         }
+//     }, 1000);
+
+//     setTimerInterval(roomId, interval);
+// }
+
+// Public wrappers — dipanggil dari roomHandlers dan internal
 
 async function handlePvpTimerExpired(io: Server, roomId: string) {
     const state = getGameState(roomId);
@@ -774,4 +796,4 @@ export function registerGameHandlers(io: Server, socket: Socket) {
     });
 }
 
-export { startTimer };
+// export { startTimer };

@@ -1,13 +1,22 @@
 import type { Room, Player } from "@who-can-make24/shared";
 import { GAME_CONSTANTS } from "@who-can-make24/shared";
 import { redis, KEYS } from "../lib/redis";
+import { randomBytes } from "crypto";
 
 function generateRoomId(): string {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
 function generateRoomCode(): string {
-    return Math.random().toString(36).substring(2, 6).toUpperCase();
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const bytes = randomBytes(6);
+    return Array.from(bytes)
+        .map((b) => chars[b % chars.length]!)
+        .join("");
+}
+
+function parseRoom(raw: unknown): Room {
+    return typeof raw === "string" ? JSON.parse(raw) : (raw as Room);
 }
 
 export async function createRoom(
@@ -25,17 +34,19 @@ export async function createRoom(
         isPrivate,
         isWild,
         players: [host],
-        maxPlayers: GAME_CONSTANTS.MAX_PLAYERS,
+        maxPlayers:
+            mode === "pvp"
+                ? GAME_CONSTANTS.MIN_PLAYERS_PVP
+                : GAME_CONSTANTS.MAX_PLAYERS,
         status: "waiting",
     };
 
-    // Simpan room sebagai JSON string
-    await redis.set(KEYS.room(room.id), JSON.stringify(room));
-    // Track socket → roomId
-    await redis.set(KEYS.playerRoom(host.id), room.id);
-    console.log(`Redis: saved playerRoom ${host.id} → ${room.id}`);
-    // Tambah ke set semua rooms
-    await redis.sadd(KEYS.allRooms, room.id);
+    // Pipeline: set room + set playerRoom + sadd allRooms
+    const pipeline = redis.pipeline();
+    pipeline.set(KEYS.room(room.id), JSON.stringify(room));
+    pipeline.set(KEYS.playerRoom(host.id), room.id);
+    pipeline.sadd(KEYS.allRooms, room.id);
+    await pipeline.exec();
 
     return room;
 }
@@ -48,19 +59,24 @@ export async function joinRoom(
     const raw = await redis.get<string>(KEYS.room(roomId));
     if (!raw) return { success: false, error: "Room tidak ditemukan" };
 
-    const room: Room = typeof raw === "string" ? JSON.parse(raw) : raw;
+    const room = parseRoom(raw);
+    const effectiveMax =
+        room.mode === "pvp" ? GAME_CONSTANTS.MIN_PLAYERS_PVP : room.maxPlayers;
 
     if (room.status !== "waiting")
         return { success: false, error: "Game sudah dimulai" };
-    if (room.players.length >= room.maxPlayers)
+    if (room.players.length >= effectiveMax)
         return { success: false, error: "Room penuh" };
     if (room.isPrivate && room.code !== code)
         return { success: false, error: "Kode salah" };
 
     room.players.push(player);
 
-    await redis.set(KEYS.room(room.id), JSON.stringify(room));
-    await redis.set(KEYS.playerRoom(player.id), room.id);
+    // Pipeline: set room + set playerRoom
+    const pipeline = redis.pipeline();
+    pipeline.set(KEYS.room(room.id), JSON.stringify(room));
+    pipeline.set(KEYS.playerRoom(player.id), room.id);
+    await pipeline.exec();
 
     return { success: true, room };
 }
@@ -74,15 +90,18 @@ export async function leaveRoom(
     const raw = await redis.get<string>(KEYS.room(roomId as string));
     if (!raw) return null;
 
-    const room: Room = typeof raw === "string" ? JSON.parse(raw) : raw;
+    const room = parseRoom(raw);
     const wasHost = room.players[0]?.id === socketId;
 
     room.players = room.players.filter((p) => p.id !== socketId);
-    await redis.del(KEYS.playerRoom(socketId));
 
     if (room.players.length === 0) {
-        await redis.del(KEYS.room(roomId as string));
-        await redis.srem(KEYS.allRooms, roomId);
+        // Pipeline: del room + del playerRoom + srem allRooms
+        const pipeline = redis.pipeline();
+        pipeline.del(KEYS.playerRoom(socketId));
+        pipeline.del(KEYS.room(roomId as string));
+        pipeline.srem(KEYS.allRooms, roomId);
+        await pipeline.exec();
         return null;
     }
 
@@ -91,22 +110,28 @@ export async function leaveRoom(
         if (newHost) newHost.isHost = true;
     }
 
-    await redis.set(KEYS.room(room.id), JSON.stringify(room));
+    // Pipeline: set room + del playerRoom
+    const pipeline = redis.pipeline();
+    pipeline.set(KEYS.room(room.id), JSON.stringify(room));
+    pipeline.del(KEYS.playerRoom(socketId));
+    await pipeline.exec();
+
     return { room, wasHost };
 }
 
 export async function deleteRoom(roomId: string): Promise<void> {
-    // const playerIds = await redis.smembers(KEYS.allRooms);
-    // Hapus semua playerRoom keys untuk room ini dulu
     const raw = await redis.get<string>(KEYS.room(roomId));
+
+    const pipeline = redis.pipeline();
     if (raw) {
-        const room: Room = typeof raw === "string" ? JSON.parse(raw) : raw;
+        const room = parseRoom(raw);
         for (const player of room.players) {
-            await redis.del(KEYS.playerRoom(player.id));
+            pipeline.del(KEYS.playerRoom(player.id));
         }
     }
-    await redis.del(KEYS.room(roomId));
-    await redis.srem(KEYS.allRooms, roomId);
+    pipeline.del(KEYS.room(roomId));
+    pipeline.srem(KEYS.allRooms, roomId);
+    await pipeline.exec();
 }
 
 export async function getPublicRooms(): Promise<Room[]> {
@@ -117,7 +142,7 @@ export async function getPublicRooms(): Promise<Room[]> {
     for (const id of roomIds) {
         const raw = await redis.get<string>(KEYS.room(id as string));
         if (raw) {
-            const room: Room = typeof raw === "string" ? JSON.parse(raw) : raw;
+            const room = parseRoom(raw);
             if (!room.isPrivate) rooms.push(room);
         }
     }
@@ -128,8 +153,6 @@ export async function getRoomByPlayerId(
     socketId: string,
 ): Promise<Room | undefined> {
     const roomId = await redis.get<string>(KEYS.playerRoom(socketId));
-    console.log(`Redis: getRoomByPlayerId ${socketId} → ${roomId}`);
-
     if (!roomId) return undefined;
     return getRoomById(roomId as string);
 }
@@ -137,7 +160,7 @@ export async function getRoomByPlayerId(
 export async function getRoomById(roomId: string): Promise<Room | undefined> {
     const raw = await redis.get<string>(KEYS.room(roomId));
     if (!raw) return undefined;
-    return typeof raw === "string" ? JSON.parse(raw) : raw;
+    return parseRoom(raw);
 }
 
 export async function updateRoom(room: Room): Promise<void> {
@@ -152,17 +175,11 @@ export async function rejoinRoom(
     const raw = await redis.get<string>(KEYS.room(roomId));
     if (!raw) return { success: false, error: "Room tidak ditemukan" };
 
-    const room: Room = typeof raw === "string" ? JSON.parse(raw) : raw;
-    
-    console.log(
-        `players before filter: ${JSON.stringify(room.players.map((p) => p.id))}`,
-    );
+    const room = parseRoom(raw);
+
     if (oldSocketId) {
         room.players = room.players.filter((p) => p.id !== oldSocketId);
-        console.log(
-            `players after filter: ${JSON.stringify(room.players.map((p) => p.id))}`,
-        );
-
+        // Del old playerRoom dulu sebelum pipeline write baru
         await redis.del(KEYS.playerRoom(oldSocketId));
     }
 
@@ -171,8 +188,12 @@ export async function rejoinRoom(
     }
 
     room.players.push(player);
-    await redis.set(KEYS.room(room.id), JSON.stringify(room));
-    await redis.set(KEYS.playerRoom(player.id), room.id);
+
+    // Pipeline: set room + set playerRoom
+    const pipeline = redis.pipeline();
+    pipeline.set(KEYS.room(room.id), JSON.stringify(room));
+    pipeline.set(KEYS.playerRoom(player.id), room.id);
+    await pipeline.exec();
 
     return { success: true, room };
 }

@@ -5,6 +5,7 @@ import App from "./App.tsx";
 import { RoomProvider } from "./context/RoomContext.tsx";
 import { GameProvider } from "./context/GameContext.tsx";
 import { socket } from "./lib/socket";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 socket.onAny((event, ...args) => {
     console.log("[socket global]", event, args);
@@ -12,10 +13,12 @@ socket.onAny((event, ...args) => {
 
 createRoot(document.getElementById("root")!).render(
     <StrictMode>
-        <RoomProvider>
-          <GameProvider>
-            <App />
-          </GameProvider>
-        </RoomProvider>
+        <ErrorBoundary>
+            <RoomProvider>
+                <GameProvider>
+                    <App />
+                </GameProvider>
+            </RoomProvider>
+        </ErrorBoundary>
     </StrictMode>,
 );

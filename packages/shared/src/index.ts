@@ -19,7 +19,7 @@ export type Room = {
     mode: "casual" | "pvp" | "battle-royale";
     isPrivate: boolean;
     players: Player[];
-    maxPlayers: 16;
+    maxPlayers: number;
     status: "waiting" | "playing" | "finished";
     isWild: boolean;
 };
