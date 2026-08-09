@@ -45,6 +45,8 @@
         "Lost Tumbler", "Cubao Free 2 SemCond", "Good Timing", "Oswald",
         sans-serif;
     --font-body: "Inter", sans-serif;
+    --color-game-violet: #a855f7;
+    --color-game-green: #3fb950;
 }
 
 body {
@@ -332,5 +334,183 @@ h3,
     .btn-moco-danger {
         background: linear-gradient(to bottom, #fca5a5, #ef4444);
         color: #1c0000;
+    }
+
+    .card-moco {
+        position: relative;
+        background: var(--color-game-surface);
+        border: 2px solid var(--color-game-border);
+        border-radius: 2px;
+        overflow: hidden;
+    }
+
+    .card-moco-cyan {
+        border-color: var(--color-game-cyan);
+        box-shadow: 5px 5px 0 var(--color-game-cyan);
+    }
+
+    .card-moco-amber {
+        border-color: var(--color-game-amber);
+        box-shadow: 5px 5px 0 var(--color-game-amber);
+    }
+
+    .card-moco-violet {
+        border-color: var(--color-game-violet);
+        box-shadow: 5px 5px 0 var(--color-game-violet);
+    }
+
+    .card-moco-coral {
+        border-color: var(--color-game-coral);
+        box-shadow: 5px 5px 0 var(--color-game-coral);
+    }
+
+    /* ── BADGE MOCO — label clip-path asimetris ── */
+    .badge-moco {
+        display: inline-block;
+        padding: 3px 12px;
+        font-family: var(--font-heading);
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        clip-path: polygon(0 0, 100% 0, 96% 100%, 4% 100%);
+    }
+
+    .badge-moco-cyan {
+        background: var(--color-game-cyan);
+        color: #001c2d;
+    }
+
+    .badge-moco-amber {
+        background: var(--color-game-amber);
+        color: #1c1000;
+    }
+
+    .badge-moco-violet {
+        background: var(--color-game-violet);
+        color: #fff;
+    }
+
+    .badge-moco-coral {
+        background: var(--color-game-coral);
+        color: #1c0000;
+    }
+
+    .badge-moco-ghost {
+        background: var(--color-game-surface2);
+        color: var(--color-game-muted);
+        border: 1px solid var(--color-game-border);
+    }
+
+    /* ── STAT BLOCK MOCO — grid item dengan clip-path ── */
+    .stat-block-moco {
+        background: var(--color-game-surface);
+        border: 1px solid var(--color-game-border);
+        padding: 8px 12px;
+        clip-path: polygon(0 0, 100% 0, 97% 100%, 3% 100%);
+    }
+
+    .stat-block-moco .stat-label {
+        color: var(--color-game-muted);
+        font-size: 0.55rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        font-family: var(--font-heading);
+        margin-bottom: 2px;
+    }
+
+    .stat-block-moco .stat-value {
+        color: var(--color-game-text);
+        font-size: 0.8rem;
+        font-weight: 700;
+        font-family: var(--font-heading);
+    }
+
+    /* ── TOP BAR MOCO — solid color strip di atas card ── */
+    .top-bar-moco {
+        padding: 8px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-family: var(--font-heading);
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+    }
+
+    .top-bar-moco-cyan {
+        background: var(--color-game-cyan);
+        color: #001c2d;
+    }
+    .top-bar-moco-amber {
+        background: var(--color-game-amber);
+        color: #1c1000;
+    }
+    .top-bar-moco-violet {
+        background: var(--color-game-violet);
+        color: #fff;
+    }
+    .top-bar-moco-coral {
+        background: var(--color-game-coral);
+        color: #1c0000;
+    }
+
+    /* ── CORNER ACCENT MOCO — triangle di pojok kanan atas ── */
+    .corner-accent-moco::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 36px;
+        height: 36px;
+        clip-path: polygon(100% 0, 0 0, 100% 100%);
+        opacity: 0.35;
+        pointer-events: none;
+    }
+
+    .corner-accent-moco-cyan::before {
+        background: var(--color-game-cyan);
+    }
+    .corner-accent-moco-amber::before {
+        background: var(--color-game-amber);
+    }
+    .corner-accent-moco-violet::before {
+        background: var(--color-game-violet);
+    }
+    .corner-accent-moco-coral::before {
+        background: var(--color-game-coral);
+    }
+
+    /* ── DIVIDER MOCO — gradient horizontal line ── */
+    .divider-moco {
+        height: 1px;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            var(--color-game-border),
+            transparent
+        );
+        margin: 16px 0;
+    }
+
+    .divider-moco-cyan {
+        background: linear-gradient(
+            90deg,
+            transparent,
+            var(--color-game-cyan),
+            transparent
+        );
+        opacity: 0.4;
+    }
+
+    .divider-moco-amber {
+        background: linear-gradient(
+            90deg,
+            transparent,
+            var(--color-game-amber),
+            transparent
+        );
+        opacity: 0.4;
     }
 }

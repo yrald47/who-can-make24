@@ -1,24 +1,15 @@
-export function Footer() {
+export function Footer({ className }: { className?: string }) {
     return (
-        <div className="text-center py-3 px-4">
-            <p className="text-white/30 text-xs">
-                ⚠️ Beta — still in testing. Deploy locally{" "}
+        <div className={`text-center py-3 px-4 ${className ?? ""}`}>
+            <p className="text-game-muted/30 text-xs">
+                made with ♥ by{" "}
                 <a
-                    href="https://saweria.co/rald"
+                    href="https://github.com/yrald47"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-white/50 hover:text-white/80 underline transition-colors"
+                    className="text-game-muted/50 hover:text-game-muted underline transition-colors"
                 >
-                    Support here
-                </a>{" "}
-                or{" "}
-                <a
-                    href="https://trakteer.id/yudha_restu_alditya"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-white/50 hover:text-white/80 underline transition-colors"
-                >
-                    Buy me a cendol ☕
+                    Rald
                 </a>
             </p>
         </div>
