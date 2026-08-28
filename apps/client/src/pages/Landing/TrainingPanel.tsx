@@ -428,8 +428,9 @@ function TimerDisplay({
 
 // ── MAIN ──────────────────────────────────────────────────────────────────────
 export function TrainingPanel({ onBack }: TrainingPanelProps) {
+    const [isWild, setIsWild] = useState(false);
     function freshHand() {
-        return generateSolvableHand() as TrainingCard[];
+        return generateSolvableHand(isWild) as TrainingCard[];
     }
 
     const [hand, setHand] = useState<TrainingCard[]>(() => freshHand());
@@ -549,7 +550,7 @@ export function TrainingPanel({ onBack }: TrainingPanelProps) {
                     setScoreCard({
                         mode: "time-attack",
                         playerName,
-                        isWild: false,
+                        isWild,
                         timestamp: Date.now(),
                         duration: TIME_ATTACK_SECONDS,
                         solved: solvedRef.current,
@@ -630,7 +631,7 @@ export function TrainingPanel({ onBack }: TrainingPanelProps) {
                     setScoreCard({
                         mode: "speed-run",
                         playerName,
-                        isWild: false,
+                        isWild,
                         // eslint-disable-next-line
                         timestamp: Date.now(),
                         cases: SPEEDRUN_CASES,
@@ -675,6 +676,37 @@ export function TrainingPanel({ onBack }: TrainingPanelProps) {
                     )}
                     <div className="flex-1">
                         <ModeSelector mode={mode} onChange={handleModeChange} />
+                        {/* Wild toggle */}
+                        <div className="flex items-center justify-between px-1">
+                            <span className="text-game-muted text-xs font-heading tracking-wider">
+                                {isWild
+                                    ? "🃏 Wild (J=11 Q=12 K=13)"
+                                    : "Normal deck"}
+                            </span>
+                            <button
+                                onClick={() => {
+                                    setIsWild((w) => !w);
+                                    setSessionStarted(false);
+                                    setSessionActive(false);
+                                    setSolvedCount(0);
+                                    solvedRef.current = 0;
+                                    if (timerRef.current)
+                                        clearInterval(timerRef.current);
+                                    newHand(); // generate ulang dengan deck baru
+                                }}
+                                className={`
+            text-[0.65rem] font-heading tracking-widest px-3 py-1
+            rounded-[2px] border transition-all
+            ${
+                isWild
+                    ? "bg-game-amber/15 border-game-amber/40 text-game-amber"
+                    : "bg-black/40 border-game-border text-game-muted/50 hover:text-game-muted"
+            }
+        `}
+                            >
+                                {isWild ? "WILD ON" : "WILD OFF"}
+                            </button>
+                        </div>
                     </div>
                 </div>
 

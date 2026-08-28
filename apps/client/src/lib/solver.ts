@@ -75,21 +75,21 @@ export function canMake24(nums: number[]): boolean {
 }
 
 const SUITS = ["♠", "♥", "♦", "♣"] as const;
-const RANKS = [
-    "A",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "10",
-    "J",
-    "Q",
-    "K",
-];
+// const RANKS = [
+//     "A",
+//     "2",
+//     "3",
+//     "4",
+//     "5",
+//     "6",
+//     "7",
+//     "8",
+//     "9",
+//     "10",
+//     "J",
+//     "Q",
+//     "K",
+// ];
 const VALUES: Record<string, number> = {
     A: 1,
     "2": 2,
@@ -112,11 +112,29 @@ export interface TrainingCard {
     value: number;
 }
 
-export function generateSolvableHand(): TrainingCard[] {
+const RANKS_NORMAL = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+const RANKS_WILD = [
+    "A",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "J",
+    "Q",
+    "K",
+];
+
+export function generateSolvableHand(isWild = false): TrainingCard[] {
+    const ranks = isWild ? RANKS_WILD : RANKS_NORMAL;
     const maxAttempts = 500;
     for (let i = 0; i < maxAttempts; i++) {
         const hand: TrainingCard[] = Array.from({ length: 4 }, () => {
-            const rank = RANKS[Math.floor(Math.random() * RANKS.length)]!;
+            const rank = ranks[Math.floor(Math.random() * ranks.length)]!;
             const suit = SUITS[Math.floor(Math.random() * SUITS.length)]!;
             return { rank, suit, value: VALUES[rank]! };
         });
