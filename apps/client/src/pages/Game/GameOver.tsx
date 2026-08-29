@@ -2,6 +2,7 @@ import { useRoomContext } from "../../context/useRoomContext";
 import { useGameContext } from "../../context/useGameContext";
 import { useSocket } from "../../hooks/useSocket";
 import { Footer } from "../../components/Footer/Footer";
+import { avatarSrc } from "@who-can-make24/shared";
 
 export function GameOver() {
     const { currentRoom, leaveRoom } = useRoomContext();
@@ -83,12 +84,16 @@ export function GameOver() {
                 {!pvpCoward && sorted.length >= 3 && (
                     <div className="flex items-end justify-center gap-4 mt-4">
                         <div className="flex flex-col items-center gap-1">
-                            <span className="text-4xl">
-                                {sorted[1]?.avatar}
+                            <span className="text-4xl w-15 h-15 object-contain">
+                                <img
+                                    src={avatarSrc(sorted[1]?.avatar ?? "")}
+                                    alt={sorted[1]?.avatar}
+                                    className="w-10 h-10 object-contain"
+                                />
                             </span>
                             <span className="text-2xl">🥈</span>
                             <p className="text-game-text text-xs font-medium">
-                                {sorted[1]?.name}
+                                {/* {sorted[1]?.name} */}
                             </p>
                             <p className="text-game-muted text-xs">
                                 {finalScores[sorted[1]?.id ?? ""] ?? 0}pt
@@ -97,7 +102,12 @@ export function GameOver() {
                         </div>
                         <div className="flex flex-col items-center gap-1 -mb-4">
                             <span className="text-5xl">
-                                {sorted[0]?.avatar}
+                                {/* {sorted[0]?.avatar} */}
+                                <img
+                                    src={avatarSrc(sorted[0]?.avatar)}
+                                    alt={sorted[0]?.avatar}
+                                    className="w-12 h-12 object-contain"
+                                />
                             </span>
                             <span className="text-3xl">🥇</span>
                             <p className="text-game-text text-sm font-bold">
@@ -110,7 +120,11 @@ export function GameOver() {
                         </div>
                         <div className="flex flex-col items-center gap-1">
                             <span className="text-3xl">
-                                {sorted[2]?.avatar}
+                                <img
+                                    src={avatarSrc(sorted[2]?.avatar)}
+                                    alt={sorted[2]?.avatar}
+                                    className="w-9 h-9 object-contain"
+                                />
                             </span>
                             <span className="text-xl">🥉</span>
                             <p className="text-game-text text-xs font-medium">
@@ -151,7 +165,11 @@ export function GameOver() {
                                         : (RANK_EMOJI[index] ?? `${index + 1}`)}
                                 </span>
                                 <span className="text-2xl">
-                                    {player.avatar}
+                                    {/* {player.avatar} */}
+                                    <img
+                                        src={avatarSrc(player.avatar)}
+                                        alt={player.avatar}
+                                    />
                                 </span>
                                 <div className="flex-1">
                                     <p

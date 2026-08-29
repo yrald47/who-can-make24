@@ -7,6 +7,7 @@ import { Playboard } from "./components/Playboard";
 import { ChatLog } from "./components/ChatLog";
 import { RulesModal } from "./components/RulesModal";
 import { PvpPhase } from "./components/phases/PvpPhase";
+import { avatarSrc } from "@who-can-make24/shared";
 
 type MobileTab = "game" | "players" | "chat";
 
@@ -30,7 +31,6 @@ export function Game() {
         return !seen;
     });
     // const [pvpDeclineMsg, setPvpDeclineMsg] = useState<string | null>(null);
-    
 
     function handleCloseRules() {
         localStorage.setItem(RULES_SEEN_KEY, "1");
@@ -89,15 +89,15 @@ export function Game() {
                                             pvpVotes[p.id] === true
                                                 ? "text-game-cyan"
                                                 : pvpVotes[p.id] === false
-                                                    ? "text-game-coral"
-                                                    : "text-game-muted/50"
+                                                  ? "text-game-coral"
+                                                  : "text-game-muted/50"
                                         }
                                     >
                                         {pvpVotes[p.id] === true
                                             ? "✓ Accept"
                                             : pvpVotes[p.id] === false
-                                                ? "✗ Decline"
-                                                : "Waiting..."}
+                                              ? "✗ Decline"
+                                              : "Waiting..."}
                                     </span>
                                 </div>
                             ))}
@@ -236,8 +236,11 @@ export function Game() {
                                     key={player.id}
                                     className={`flex items-center gap-3 p-3 rounded-sm bg-game-surface border border-game-border ${player.id === myId ? "border-game-cyan/40" : ""}`}
                                 >
-                                    <span className="text-2xl">
-                                        {player.avatar}
+                                    <span className="text-2xl w-15 h-15 object-contain">
+                                        <img
+                                            src={avatarSrc(player.avatar)}
+                                            alt={player.avatar}
+                                        />
                                     </span>
                                     <div className="flex-1">
                                         <p className="text-game-text text-sm font-medium">

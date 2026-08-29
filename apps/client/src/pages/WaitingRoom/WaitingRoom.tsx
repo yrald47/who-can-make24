@@ -2,6 +2,7 @@ import { useState } from "react";
 import { GAME_CONSTANTS } from "@who-can-make24/shared";
 import { useSocket } from "../../hooks/useSocket";
 import { useRoomContext } from "../../context/useRoomContext";
+import { avatarSrc } from "@who-can-make24/shared";
 
 export function WaitingRoom() {
     const { currentRoom, leaveRoom } = useRoomContext();
@@ -117,8 +118,12 @@ export function WaitingRoom() {
                                         }
                                     `}
                                 >
-                                    <span className="text-2xl">
-                                        {player.avatar}
+                                    <span className="text-2xl w-15 h-15 object-contain">
+                                        {/* {player.avatar} */}
+                                        <img
+                                            src={avatarSrc(player.avatar)}
+                                            alt={player.avatar}
+                                        />
                                     </span>
                                     <div className="flex-1">
                                         <span className="text-sm font-medium text-game-text">
