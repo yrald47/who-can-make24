@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { VALID_AVATARS } from "@who-can-make24/shared";
+import { VALID_AVATARS, avatarSrc } from "@who-can-make24/shared";
 import type { Room } from "@who-can-make24/shared";
 import { useRoomContext } from "../../context/useRoomContext";
 import { useSocket } from "../../hooks/useSocket";
@@ -167,7 +167,11 @@ export function Landing() {
                                                         }
                                                     `}
                                                 >
-                                                    {a}
+                                                    <img
+                                                        src={avatarSrc(a)}
+                                                        alt={a}
+                                                        className="w-15 h-15 object-contain"
+                                                    />
                                                 </button>
                                             ))}
                                         </div>
@@ -351,30 +355,36 @@ export function Landing() {
 
                             {/* Mobile: Room list drawer */}
                             {showRoomList && (
-                                <div className="md:hidden absolute inset-x-0 bottom-14 bg-game-surface border border-game-border rounded-t-[4px] p-4 z-30 flex flex-col gap-2 max-h-64 overflow-y-auto">
+                                <div className="md:hidden absolute inset-x-0 bottom-[52px] bg-game-bg border border-game-border border-b-0 rounded-t-[6px] shadow-[0_-8px_32px_rgba(0,0,0,0.6),0_-1px_0_rgba(56,189,248,0.15)] max-h-[55vh] p-4 z-30 flex flex-col gap-2 overflow-y-auto">
+                                    <p className="text-[0.6rem] font-heading tracking-[0.18em] uppercase text-game-muted/40 px-1 shrink-0">
+                                        Choose a Room
+                                    </p>
                                     {publicRooms.length === 0 ? (
                                         <p className="text-game-muted/40 text-xs text-center py-2 font-heading tracking-widest">
                                             NO ACTIVE ROOMS
                                         </p>
                                     ) : (
-                                        publicRooms.map((room) => (
-                                            <RoomCard
-                                                key={room.id}
-                                                room={room}
-                                                isSelected={
-                                                    selectedRoomId === room.id
-                                                }
-                                                onClick={() => {
-                                                    setSelectedRoomId(
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {publicRooms.map((room) => (
+                                                <RoomCard
+                                                    key={room.id}
+                                                    room={room}
+                                                    isSelected={
                                                         selectedRoomId ===
-                                                            room.id
-                                                            ? null
-                                                            : room.id,
-                                                    );
-                                                    setShowRoomList(false);
-                                                }}
-                                            />
-                                        ))
+                                                        room.id
+                                                    }
+                                                    onClick={() => {
+                                                        setSelectedRoomId(
+                                                            selectedRoomId ===
+                                                                room.id
+                                                                ? null
+                                                                : room.id,
+                                                        );
+                                                        setShowRoomList(false);
+                                                    }}
+                                                />
+                                            ))}
+                                        </div>
                                     )}
                                     <button
                                         onClick={() => {
@@ -428,24 +438,26 @@ export function Landing() {
                                                     NO ACTIVE ROOMS
                                                 </p>
                                             ) : (
-                                                publicRooms.map((room) => (
-                                                    <RoomCard
-                                                        key={room.id}
-                                                        room={room}
-                                                        isSelected={
-                                                            selectedRoomId ===
-                                                            room.id
-                                                        }
-                                                        onClick={() =>
-                                                            setSelectedRoomId(
+                                                <div className="grid grid-cols-4 gap-2">
+                                                    {publicRooms.map((room) => (
+                                                        <RoomCard
+                                                            key={room.id}
+                                                            room={room}
+                                                            isSelected={
                                                                 selectedRoomId ===
-                                                                    room.id
-                                                                    ? null
-                                                                    : room.id,
-                                                            )
-                                                        }
-                                                    />
-                                                ))
+                                                                room.id
+                                                            }
+                                                            onClick={() =>
+                                                                setSelectedRoomId(
+                                                                    selectedRoomId ===
+                                                                        room.id
+                                                                        ? null
+                                                                        : room.id,
+                                                                )
+                                                            }
+                                                        />
+                                                    ))}
+                                                </div>
                                             )}
                                         </div>
 

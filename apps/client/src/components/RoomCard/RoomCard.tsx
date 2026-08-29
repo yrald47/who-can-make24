@@ -15,9 +15,9 @@ const STATUS_LABEL: Record<Room["status"], string> = {
 };
 
 const STATUS_COLOR: Record<Room["status"], string> = {
-    waiting: "bg-green-100 text-green-700",
-    playing: "bg-yellow-100 text-yellow-700",
-    finished: "bg-gray-100 text-gray-500",
+    waiting: "text-game-green border-game-green/40 bg-game-green/10",
+    playing: "text-game-amber border-game-amber/40 bg-game-amber/10",
+    finished: "text-game-muted border-game-border bg-black/20",
 };
 
 const MODE_LABEL: Record<Room["mode"], string> = {
@@ -33,27 +33,65 @@ export function RoomCard({ room, isSelected, onClick }: RoomCardProps) {
         <div
             onClick={!isFull ? onClick : undefined}
             className={`
-        border rounded-xl p-4 transition-all cursor-pointer
-        ${isSelected ? "border-blue-500 bg-gradient-to-b from-amber-300 to-amber-500 text-amber-950" : "border-gray-200 hover:border-blue-300 hover:bg-game-accent"}
-        ${isFull ? "opacity-50 cursor-not-allowed" : ""}
-        `}
+                relative flex flex-col gap-2 p-3 rounded-[4px]
+                border transition-all
+                ${
+                    isFull
+                        ? "opacity-40 cursor-not-allowed border-game-border bg-black/20"
+                        : isSelected
+                          ? "border-game-amber bg-game-amber/10 shadow-[0_0_12px_rgba(251,191,36,0.15)] cursor-pointer"
+                          : "border-game-border bg-game-surface hover:border-game-border2 hover:bg-game-surface2 cursor-pointer"
+                }
+            `}
         >
-            <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-sm leading-height ">
+            {/* selected indicator */}
+            {isSelected && (
+                <div className="absolute top-0 left-0 w-[3px] h-full bg-game-amber rounded-l-[4px]" />
+            )}
+
+            {/* top row — name + status */}
+            <div className="flex items-start justify-between gap-2">
+                <span
+                    className={`font-heading font-semibold text-[0.78rem] tracking-wide leading-tight truncate ${isSelected ? "text-game-amber" : "text-game-text"}`}
+                >
                     {room.name}
                 </span>
                 <span
-                    className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ml-1 ${STATUS_COLOR[room.status]}`}
+                    className={`text-[0.58rem] px-1.5 py-0.5 rounded-[3px] font-heading font-bold tracking-widest border shrink-0 uppercase ${STATUS_COLOR[room.status]}`}
                 >
                     {STATUS_LABEL[room.status]}
                 </span>
             </div>
-            <div className="flex flex-col gap-1 text-xs text-gray-500">
-                <span>
-                    {room.players.length}/{room.maxPlayers} pemain
+
+            {/* bottom row — meta */}
+            <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[0.68rem] text-game-muted font-mono">
+                    {room.players.length}/{room.maxPlayers}
                 </span>
-                <span>{MODE_LABEL[room.mode]}</span>
-                {room.isPrivate && <span>🔒 Private</span>}
+                <span className="text-game-muted/30 text-[0.6rem]">·</span>
+                <span className="text-[0.68rem] text-game-muted">
+                    {MODE_LABEL[room.mode]}
+                </span>
+                {room.isWild && (
+                    <>
+                        <span className="text-game-muted/30 text-[0.6rem]">
+                            ·
+                        </span>
+                        <span className="text-[0.65rem] text-game-amber/70">
+                            🃏 Wild
+                        </span>
+                    </>
+                )}
+                {room.isPrivate && (
+                    <>
+                        <span className="text-game-muted/30 text-[0.6rem]">
+                            ·
+                        </span>
+                        <span className="text-[0.65rem] text-game-muted/60">
+                            🔒
+                        </span>
+                    </>
+                )}
             </div>
         </div>
     );

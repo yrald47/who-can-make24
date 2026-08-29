@@ -48,15 +48,19 @@ export const GAME_CONSTANTS = {
 } as const;
 
 export const VALID_AVATARS = [
-    "😀",
-    "🤓",
-    "😎",
-    "🧐",
-    "🥸",
-    "🤩",
-    "😏",
-    "🤯",
+    "avatar-001",
+    "avatar-50",
+    "avatar-180",
+    "avatar-181",
+    "avatar-182",
+    "avatar-183",
+    "avatar-184",
+    "avatar-184a",
 ] as const;
 
+export type AvatarId = (typeof VALID_AVATARS)[number];
 
+export function avatarSrc(id: string): string {
+    return `/avatars/${id}.svg`;
+}
 // export type RoomStatus = "waiting" | "playing" | "finished";
