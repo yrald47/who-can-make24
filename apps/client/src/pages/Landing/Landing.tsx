@@ -18,7 +18,9 @@ export function Landing() {
     const { connected } = useSocket();
 
     const [name, setName] = useState(savedIdentity?.name ?? "");
-    const [avatar, setAvatar] = useState(savedIdentity?.avatar ?? VALID_AVATARS[0]);
+    const [avatar, setAvatar] = useState(
+        savedIdentity?.avatar ?? VALID_AVATARS[0],
+    );
     const [showCreate, setShowCreate] = useState(false);
     const [newRoomName, setNewRoomName] = useState("");
     const [newRoomMode, setNewRoomMode] = useState<Room["mode"]>("casual");
@@ -51,14 +53,17 @@ export function Landing() {
     }, []);
 
     const selectedRoom = rooms.find((r) => r.id === selectedRoomId);
-    const publicRooms = rooms.filter((r) => !r.isPrivate && r.status === "waiting");
+    const publicRooms = rooms.filter(
+        (r) => !r.isPrivate && r.status === "waiting",
+    );
 
     function handleJumpIn() {
         if (!name.trim() || !connected) return;
         if (selectedRoomId) {
             joinRoom(selectedRoomId, name, avatar);
         } else if (publicRooms.length > 0) {
-            const room = publicRooms[Math.floor(Math.random() * publicRooms.length)]!;
+            const room =
+                publicRooms[Math.floor(Math.random() * publicRooms.length)]!;
             joinRoom(room.id, name, avatar);
         } else {
             setShowCreate(true);
@@ -67,14 +72,21 @@ export function Landing() {
 
     function handleCreateRoom() {
         if (!newRoomName.trim() || !name.trim()) return;
-        createRoom(newRoomName, newRoomMode, newRoomPrivate, name, avatar, newRoomWild);
+        createRoom(
+            newRoomName,
+            newRoomMode,
+            newRoomPrivate,
+            name,
+            avatar,
+            newRoomWild,
+        );
         setShowCreate(false);
         setNewRoomName("");
         setNewRoomWild(false);
     }
 
     return (
-        <div className="min-h-screen flex flex-col overflow-hidden">
+        <div className="h-screen h-[100dvh] flex flex-col overflow-hidden">
             {/* ── HEADER ── */}
             <header className="relative z-10 bg-game-bg/80 backdrop-blur-game-sm border-b border-game-border/40 px-6 pt-5 pb-3 shrink-0 flex items-start justify-between">
                 <div>
@@ -95,12 +107,11 @@ export function Landing() {
                 </div>
             </header>
 
-            {/* Support links */}
-
             {/* ── MAIN ── */}
-            <div className="flex-1 flex items-start md:items-center justify-center p-4 md:p-8">
-                <div className="w-full max-w-4xl flex flex-col gap-2.5">
-                    <div className="flex justify-center gap-3 py-1.5 shrink-0">
+            <div className="flex-1 min-h-0 flex flex-col p-4 md:p-6">
+                <div className="w-full max-w-6xl mx-auto flex-1 min-h-0 flex flex-col gap-2">
+                    {/* Support links */}
+                    <div className="flex justify-center gap-3 shrink-0">
                         <span className="text-game-muted/20 text-xs">
                             Deploy locally ·
                         </span>
@@ -124,95 +135,79 @@ export function Landing() {
                             Buy me a cendol ☕
                         </a>
                     </div>
-                    <div className="w-full max-w-4xl flex flex-col md:flex-row gap-4">
+
+                    {/* ── TWO COLUMN ── */}
+                    <div className="w-full flex-1 min-h-0 flex flex-col md:flex-row gap-4">
                         {/* ── LEFT — Identity ── */}
-                        <div className="card-moco card-moco-cyan corner-accent-moco corner-accent-moco-cyan relative w-full md:w-80 shrink-0 flex flex-col">
-                            <div className="top-bar-moco top-bar-moco-cyan">
+                        <div className="card-moco card-moco-cyan corner-accent-moco corner-accent-moco-cyan relative w-full md:w-96 shrink-0 flex flex-col h-full min-h-0">
+                            <div className="top-bar-moco top-bar-moco-cyan shrink-0">
                                 <span>Your Identity</span>
                             </div>
 
-                            <div className="p-5 flex flex-col gap-4">
-                                {/* Avatar */}
-                                <div>
-                                    <p className="field-label mb-2">
-                                        Pick an Avatar
-                                    </p>
-                                    <div className="grid grid-cols-4 gap-2">
-                                        {VALID_AVATARS.map((a) => (
-                                            <button
-                                                key={a}
-                                                onClick={() => setAvatar(a)}
-                                                className={`
-                                                    aspect-square rounded-[3px] text-xl flex items-center justify-center
-                                                    border transition-all
-                                                    ${
-                                                        avatar === a
-                                                            ? "bg-game-cyan/10 border-game-cyan shadow-[0_0_8px_rgba(56,189,248,0.15)]"
-                                                            : "bg-black/40 border-game-border hover:border-game-cyan/40"
-                                                    }
-                                                `}
-                                            >
-                                                {a}
-                                            </button>
-                                        ))}
+                            {/* Form area */}
+                            <div className="p-4 md:p-5 flex-1 min-h-0 flex flex-col gap-3 justify-between">
+                                <div className="flex flex-col gap-3">
+                                    {/* Avatar */}
+                                    <div>
+                                        <p className="field-label mb-2">
+                                            Pick an Avatar
+                                        </p>
+                                        <div className="grid grid-cols-4 gap-2">
+                                            {VALID_AVATARS.map((a) => (
+                                                <button
+                                                    key={a}
+                                                    onClick={() => setAvatar(a)}
+                                                    className={`
+                                                        aspect-square rounded-[3px] text-xl flex items-center justify-center
+                                                        border transition-all
+                                                        ${
+                                                            avatar === a
+                                                                ? "bg-game-cyan/10 border-game-cyan shadow-[0_0_8px_rgba(56,189,248,0.15)]"
+                                                                : "bg-black/40 border-game-border hover:border-game-cyan/40"
+                                                        }
+                                                    `}
+                                                >
+                                                    {a}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
 
-                                {/* Name */}
-                                <div>
-                                    <p className="field-label mb-1.5">
-                                        Your Name
-                                    </p>
-                                    <input
-                                        type="text"
-                                        value={name}
-                                        onChange={(e) =>
-                                            setName(e.target.value)
-                                        }
-                                        placeholder="Enter your name"
-                                        maxLength={20}
-                                        className="w-full bg-black/60 border border-game-border rounded-[3px] px-3 py-2 text-game-text text-sm outline-none focus:border-game-cyan/60 transition-colors placeholder:text-game-muted/30"
-                                    />
-                                </div>
+                                    {/* Name */}
+                                    <div>
+                                        <p className="field-label mb-1.5">
+                                            Your Name
+                                        </p>
+                                        <input
+                                            type="text"
+                                            value={name}
+                                            onChange={(e) =>
+                                                setName(e.target.value)
+                                            }
+                                            placeholder="Enter your name"
+                                            maxLength={20}
+                                            className="w-full bg-black/60 border border-game-border rounded-[3px] px-3 py-2 text-game-text text-sm outline-none focus:border-game-cyan/60 transition-colors placeholder:text-game-muted/30"
+                                        />
+                                    </div>
 
-                                {/* Google */}
-                                <button
-                                    disabled
-                                    className="w-full flex items-center justify-center gap-2 py-2 rounded-[3px] bg-black/40 border border-game-border text-game-muted/40 text-sm cursor-not-allowed"
-                                >
-                                    <span className="text-base">G</span>
-                                    Sign in with Google
-                                </button>
-                            </div>
-
-                            {/* ── Mobile: What is this / Training flip ── */}
-                            <div
-                                className="px-5 pb-5 mt-auto md:hidden"
-                                style={{ perspective: "1000px" }}
-                            >
-                                <div
-                                    className="relative transition-all duration-500"
-                                    style={{
-                                        transformStyle: "preserve-3d",
-                                        transform: isTrainingMobile
-                                            ? "rotateY(180deg)"
-                                            : "rotateY(0deg)",
-                                        minHeight: "200px",
-                                        height: isTrainingMobile
-                                            ? "420px"
-                                            : "auto",
-                                    }}
-                                >
-                                    {/* FRONT */}
-                                    <div
-                                        className={`paper-stack ${isTrainingMobile ? "pointer-events-none" : "pointer-events-auto"}`}
-                                        style={{ backfaceVisibility: "hidden" }}
+                                    {/* Google */}
+                                    <button
+                                        disabled
+                                        className="w-full flex items-center justify-center gap-2 py-2 rounded-[3px] bg-black/40 border border-game-border text-game-muted/40 text-sm cursor-not-allowed"
                                     >
-                                        <div className="paper-front p-5">
-                                            <p className="section-label mb-3">
+                                        <span className="text-base">G</span>
+                                        Sign in with Google
+                                    </button>
+                                </div>
+
+                                {/* What is this — desktop only, pushed to bottom */}
+                                <div className="hidden md:block">
+                                    <div className="paper-stack">
+                                        <div className="paper-front px-4 py-3">
+                                            <p className="section-label mb-1.5">
                                                 What is this? 🧠
                                             </p>
-                                            <p className="text-sm leading-relaxed text-game-text/80">
+                                            <p className="text-xs leading-relaxed text-game-text/80">
                                                 Turn 4 random numbers into{" "}
                                                 <strong className="text-game-cyan">
                                                     24
@@ -224,7 +219,7 @@ export function Landing() {
                                                     hit the buzzer fast!
                                                 </strong>
                                             </p>
-                                            <p className="text-sm mt-2 leading-relaxed text-game-text/80">
+                                            <p className="text-xs mt-1.5 leading-relaxed text-game-text/80">
                                                 The slowest players become the{" "}
                                                 <strong className="text-game-coral">
                                                     "Loser Candidates."
@@ -233,36 +228,95 @@ export function Landing() {
                                                 answer. Prove it right — you get
                                                 the points. Fail it — they do.
                                             </p>
-                                            <button
-                                                onClick={() =>
-                                                    setIsTrainingMobile(true)
-                                                }
-                                                className="mt-3 btn-moco btn-moco-ghost text-[0.7rem]"
-                                            >
-                                                <span>🧠 Train Mode →</span>
-                                            </button>
                                         </div>
                                     </div>
+                                </div>
 
-                                    {/* BACK */}
+                                {/* Mobile: What is this / Training flip */}
+                                <div
+                                    className="md:hidden"
+                                    style={{ perspective: "1000px" }}
+                                >
                                     <div
-                                        className={`absolute inset-0 bg-game-surface2 rounded-[4px] border border-game-border ${isTrainingMobile ? "pointer-events-auto" : "pointer-events-none"}`}
+                                        className="relative transition-all duration-500"
                                         style={{
-                                            backfaceVisibility: "hidden",
-                                            transform: "rotateY(180deg)",
+                                            transformStyle: "preserve-3d",
+                                            transform: isTrainingMobile
+                                                ? "rotateY(180deg)"
+                                                : "rotateY(0deg)",
+                                            minHeight: "200px",
+                                            height: isTrainingMobile
+                                                ? "420px"
+                                                : "auto",
                                         }}
                                     >
-                                        <TrainingPanel
-                                            onBack={() =>
-                                                setIsTrainingMobile(false)
-                                            }
-                                        />
+                                        {/* FRONT */}
+                                        <div
+                                            className={`paper-stack ${isTrainingMobile ? "pointer-events-none" : "pointer-events-auto"}`}
+                                            style={{
+                                                backfaceVisibility: "hidden",
+                                            }}
+                                        >
+                                            <div className="paper-front p-4">
+                                                <p className="section-label mb-2">
+                                                    What is this? 🧠
+                                                </p>
+                                                <p className="text-sm leading-relaxed text-game-text/80">
+                                                    Turn 4 random numbers into{" "}
+                                                    <strong className="text-game-cyan">
+                                                        24
+                                                    </strong>{" "}
+                                                    using{" "}
+                                                    <strong>+ − × ÷</strong>{" "}
+                                                    only. If you think you know
+                                                    the math,{" "}
+                                                    <strong>
+                                                        hit the buzzer fast!
+                                                    </strong>
+                                                </p>
+                                                <p className="text-sm mt-2 leading-relaxed text-game-text/80">
+                                                    The slowest players become
+                                                    the{" "}
+                                                    <strong className="text-game-coral">
+                                                        "Loser Candidates."
+                                                    </strong>{" "}
+                                                    They point at you to prove
+                                                    your answer. Prove it right
+                                                    — you get the points. Fail
+                                                    it — they do.
+                                                </p>
+                                                <button
+                                                    onClick={() =>
+                                                        setIsTrainingMobile(
+                                                            true,
+                                                        )
+                                                    }
+                                                    className="mt-3 btn-moco btn-moco-ghost text-[0.7rem]"
+                                                >
+                                                    <span>🧠 Train Mode →</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* BACK */}
+                                        <div
+                                            className={`absolute inset-0 bg-game-surface2 rounded-[4px] border border-game-border ${isTrainingMobile ? "pointer-events-auto" : "pointer-events-none"}`}
+                                            style={{
+                                                backfaceVisibility: "hidden",
+                                                transform: "rotateY(180deg)",
+                                            }}
+                                        >
+                                            <TrainingPanel
+                                                onBack={() =>
+                                                    setIsTrainingMobile(false)
+                                                }
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* ── Mobile: Jump In bar ── */}
-                            {/* <div className="md:hidden relative overflow-hidden px-5 py-3 flex items-center justify-between bg-black/60 border-t border-game-border mt-auto"> */}
+                            {/* Mobile: Jump In bar */}
                             <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 overflow-hidden px-5 py-3 flex items-center justify-between bg-game-bg/95 backdrop-blur-sm border-t border-game-border">
                                 <button
                                     onClick={() =>
@@ -295,7 +349,7 @@ export function Landing() {
                                 </button>
                             </div>
 
-                            {/* ── Mobile: Room list drawer ── */}
+                            {/* Mobile: Room list drawer */}
                             {showRoomList && (
                                 <div className="md:hidden absolute inset-x-0 bottom-14 bg-game-surface border border-game-border rounded-t-[4px] p-4 z-30 flex flex-col gap-2 max-h-64 overflow-y-auto">
                                     {publicRooms.length === 0 ? (
@@ -337,26 +391,25 @@ export function Landing() {
 
                         {/* ── RIGHT — Rooms / Training desktop ── */}
                         <div
-                            className="hidden md:block flex-1 min-w-0"
+                            className="hidden md:block flex-1 min-w-0 h-full min-h-0"
                             style={{ perspective: "1000px" }}
                         >
                             <div
-                                className="relative transition-all duration-500"
+                                className="relative h-full w-full transition-all duration-500"
                                 style={{
                                     transformStyle: "preserve-3d",
                                     transform: isTraining
                                         ? "rotateY(180deg)"
                                         : "rotateY(0deg)",
-                                    minHeight: 420,
                                 }}
                             >
                                 {/* FRONT — Room list */}
                                 <div
-                                    className={`absolute inset-0 flex flex-col p-0 gap-0 ${isTraining ? "pointer-events-none" : "pointer-events-auto"}`}
+                                    className={`absolute inset-0 flex flex-col ${isTraining ? "pointer-events-none" : "pointer-events-auto"}`}
                                     style={{ backfaceVisibility: "hidden" }}
                                 >
                                     <div className="card-moco card-moco-amber corner-accent-moco corner-accent-moco-amber relative flex flex-col h-full">
-                                        <div className="top-bar-moco top-bar-moco-amber">
+                                        <div className="top-bar-moco top-bar-moco-amber shrink-0">
                                             <span>Matchmaker Terminal</span>
                                             <button
                                                 onClick={() =>
@@ -369,7 +422,7 @@ export function Landing() {
                                         </div>
 
                                         {/* Room list */}
-                                        <div className="flex-1 flex flex-col gap-2 p-4 overflow-y-auto">
+                                        <div className="flex-1 min-h-0 flex flex-col gap-2 p-4 overflow-y-auto">
                                             {publicRooms.length === 0 ? (
                                                 <p className="text-game-muted/40 text-xs text-center py-6 font-heading tracking-widest">
                                                     NO ACTIVE ROOMS
@@ -397,7 +450,7 @@ export function Landing() {
                                         </div>
 
                                         {/* Create room button */}
-                                        <div className="px-4 py-3 border-t border-game-border/40">
+                                        <div className="px-4 py-3 border-t border-game-border/40 shrink-0">
                                             <button
                                                 onClick={() =>
                                                     setShowCreate(true)
@@ -408,8 +461,8 @@ export function Landing() {
                                             </button>
                                         </div>
 
-                                        {/* Jump In bar — desktop, di dalam card */}
-                                        <div className="relative overflow-hidden px-4 py-3 flex items-center justify-between bg-black/60 border-t border-game-border">
+                                        {/* Jump In bar */}
+                                        <div className="relative overflow-hidden px-4 py-3 flex items-center justify-between bg-black/60 border-t border-game-border shrink-0">
                                             <p className="text-xs text-game-muted opacity-60">
                                                 {selectedRoom
                                                     ? `${selectedRoom.name} · ${selectedRoom.players.length}/${selectedRoom.maxPlayers} players`
@@ -448,7 +501,7 @@ export function Landing() {
                                     }}
                                 >
                                     <div className="card-moco card-moco-cyan corner-accent-moco corner-accent-moco-cyan relative flex flex-col h-full">
-                                        <div className="top-bar-moco top-bar-moco-cyan">
+                                        <div className="top-bar-moco top-bar-moco-cyan shrink-0">
                                             <span>Train Your Brain</span>
                                             <button
                                                 onClick={() =>
@@ -459,7 +512,7 @@ export function Landing() {
                                                 ← ROOMS
                                             </button>
                                         </div>
-                                        <div className="flex-1">
+                                        <div className="flex-1 min-h-0">
                                             <TrainingPanel />
                                         </div>
                                     </div>
