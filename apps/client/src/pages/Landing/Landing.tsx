@@ -145,7 +145,7 @@ export function Landing() {
                             </div>
 
                             {/* Form area */}
-                            <div className="p-4 md:p-5 flex-1 min-h-0 flex flex-col gap-3 justify-between">
+                            <div className="p-4 md:p-5 flex-1 min-h-0 flex flex-col gap-3">
                                 <div className="flex flex-col gap-3">
                                     {/* Avatar */}
                                     <div>
@@ -202,122 +202,122 @@ export function Landing() {
                                         <span className="text-base">G</span>
                                         Sign in with Google
                                     </button>
-                                </div>
-
-                                {/* What is this — desktop only, pushed to bottom */}
-                                <div className="hidden md:block">
-                                    <div className="paper-stack">
-                                        <div className="paper-front px-4 py-3">
-                                            <p className="section-label mb-1.5">
-                                                What is this? 🧠
-                                            </p>
-                                            <p className="text-xs leading-relaxed text-game-text/80">
-                                                Turn 4 random numbers into{" "}
-                                                <strong className="text-game-cyan">
-                                                    24
-                                                </strong>{" "}
-                                                using <strong>+ − × ÷</strong>{" "}
-                                                only. If you think you know the
-                                                math,{" "}
-                                                <strong>
-                                                    hit the buzzer fast!
-                                                </strong>
-                                            </p>
-                                            <p className="text-xs mt-1.5 leading-relaxed text-game-text/80">
-                                                The slowest players become the{" "}
-                                                <strong className="text-game-coral">
-                                                    "Loser Candidates."
-                                                </strong>{" "}
-                                                They point at you to prove your
-                                                answer. Prove it right — you get
-                                                the points. Fail it — they do.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Mobile: What is this / Training flip */}
-                                <div
-                                    className="md:hidden"
-                                    style={{ perspective: "1000px" }}
-                                >
-                                    <div
-                                        className="relative transition-all duration-500"
-                                        style={{
-                                            transformStyle: "preserve-3d",
-                                            transform: isTrainingMobile
-                                                ? "rotateY(180deg)"
-                                                : "rotateY(0deg)",
-                                            minHeight: "200px",
-                                            height: isTrainingMobile
-                                                ? "420px"
-                                                : "auto",
-                                        }}
-                                    >
-                                        {/* FRONT */}
-                                        <div
-                                            className={`paper-stack ${isTrainingMobile ? "pointer-events-none" : "pointer-events-auto"}`}
-                                            style={{
-                                                backfaceVisibility: "hidden",
-                                            }}
-                                        >
-                                            <div className="paper-front p-4">
-                                                <p className="section-label mb-2">
+                                    {/* What is this — desktop only, pushed to bottom */}
+                                    <div className="hidden md:block">
+                                        <div className="paper-stack">
+                                            <div className="paper-front px-4 py-3">
+                                                <p className="section-label mb-1.5">
                                                     What is this? 🧠
                                                 </p>
-                                                <p className="text-sm leading-relaxed text-game-text/80">
+                                                <p className="text-xs leading-relaxed text-game-text/80">
                                                     Turn 4 random numbers into{" "}
                                                     <strong className="text-game-cyan">
                                                         24
                                                     </strong>{" "}
-                                                    using{" "}
-                                                    <strong>+ − × ÷</strong>{" "}
-                                                    only. If you think you know
-                                                    the math,{" "}
+                                                    using <strong>+ − × ÷</strong>{" "}
+                                                    only. If you think you know the
+                                                    math,{" "}
                                                     <strong>
                                                         hit the buzzer fast!
                                                     </strong>
                                                 </p>
-                                                <p className="text-sm mt-2 leading-relaxed text-game-text/80">
-                                                    The slowest players become
-                                                    the{" "}
+                                                <p className="text-xs mt-1.5 leading-relaxed text-game-text/80">
+                                                    The slowest players become the{" "}
                                                     <strong className="text-game-coral">
                                                         "Loser Candidates."
                                                     </strong>{" "}
-                                                    They point at you to prove
-                                                    your answer. Prove it right
-                                                    — you get the points. Fail
-                                                    it — they do.
+                                                    They point at you to prove your
+                                                    answer. Prove it right — you get
+                                                    the points. Fail it — they do.
                                                 </p>
-                                                <button
-                                                    onClick={() =>
-                                                        setIsTrainingMobile(
-                                                            true,
-                                                        )
-                                                    }
-                                                    className="mt-3 btn-moco btn-moco-ghost text-[0.7rem]"
-                                                >
-                                                    <span>🧠 Train Mode →</span>
-                                                </button>
                                             </div>
                                         </div>
+                                    </div>
 
-                                        {/* BACK */}
+                                    {/* Mobile: What is this / Training flip */}
+                                    <div
+                                        className="md:hidden"
+                                        style={{ perspective: "1000px" }}
+                                    >
                                         <div
-                                            className={`absolute inset-0 bg-game-surface2 rounded-[4px] border border-game-border ${isTrainingMobile ? "pointer-events-auto" : "pointer-events-none"}`}
+                                            className="relative transition-all duration-500"
                                             style={{
-                                                backfaceVisibility: "hidden",
-                                                transform: "rotateY(180deg)",
+                                                transformStyle: "preserve-3d",
+                                                transform: isTrainingMobile
+                                                    ? "rotateY(180deg)"
+                                                    : "rotateY(0deg)",
+                                                minHeight: "200px",
+                                                height: isTrainingMobile
+                                                    ? "420px"
+                                                    : "auto",
                                             }}
                                         >
-                                            <TrainingPanel
-                                                onBack={() =>
-                                                    setIsTrainingMobile(false)
-                                                }
-                                            />
+                                            {/* FRONT */}
+                                            <div
+                                                className={`paper-stack ${isTrainingMobile ? "pointer-events-none" : "pointer-events-auto"}`}
+                                                style={{
+                                                    backfaceVisibility: "hidden",
+                                                }}
+                                            >
+                                                <div className="paper-front p-4">
+                                                    <p className="section-label mb-2">
+                                                        What is this? 🧠
+                                                    </p>
+                                                    <p className="text-sm leading-relaxed text-game-text/80">
+                                                        Turn 4 random numbers into{" "}
+                                                        <strong className="text-game-cyan">
+                                                            24
+                                                        </strong>{" "}
+                                                        using{" "}
+                                                        <strong>+ − × ÷</strong>{" "}
+                                                        only. If you think you know
+                                                        the math,{" "}
+                                                        <strong>
+                                                            hit the buzzer fast!
+                                                        </strong>
+                                                    </p>
+                                                    <p className="text-sm mt-2 leading-relaxed text-game-text/80">
+                                                        The slowest players become
+                                                        the{" "}
+                                                        <strong className="text-game-coral">
+                                                            "Loser Candidates."
+                                                        </strong>{" "}
+                                                        They point at you to prove
+                                                        your answer. Prove it right
+                                                        — you get the points. Fail
+                                                        it — they do.
+                                                    </p>
+                                                    <button
+                                                        onClick={() =>
+                                                            setIsTrainingMobile(
+                                                                true,
+                                                            )
+                                                        }
+                                                        className="mt-3 btn-moco btn-moco-ghost text-[0.7rem]"
+                                                    >
+                                                        <span>🧠 Train Mode →</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* BACK */}
+                                            <div
+                                                className={`absolute inset-0 bg-game-surface2 rounded-[4px] border border-game-border ${isTrainingMobile ? "pointer-events-auto" : "pointer-events-none"}`}
+                                                style={{
+                                                    backfaceVisibility: "hidden",
+                                                    transform: "rotateY(180deg)",
+                                                }}
+                                            >
+                                                <TrainingPanel
+                                                    onBack={() =>
+                                                        setIsTrainingMobile(false)
+                                                    }
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+
                             </div>
 
                             {/* Mobile: Jump In bar */}
