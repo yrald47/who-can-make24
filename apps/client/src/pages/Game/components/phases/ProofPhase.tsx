@@ -3,7 +3,7 @@ import type { ProofStep } from "@who-can-make24/shared";
 import { useGameContext } from "../../../../context/useGameContext";
 import { useRoomContext } from "../../../../context/useRoomContext";
 import { useSocket } from "../../../../hooks/useSocket";
-// import { GAME_CONSTANTS } from "@who-can-make24/shared";
+import { avatarSrc } from "@who-can-make24/shared";
 
 const SUIT_COLOR: Record<string, string> = {
     spades: "text-gray-800",
@@ -32,15 +32,12 @@ export function ProofPhase() {
     const [pendingOp, setPendingOp] = useState<"+" | "-" | "*" | "/" | null>(
         null,
     );
-
     const [steps, setSteps] = useState<ProofStep[]>([]);
     const [submitted, setSubmitted] = useState(false);
 
     if (!gameState || !currentRoom) return null;
 
     const myId = socket.id ?? "";
-
-    // Siapa yang harus buktikan
     const provers = [...new Set(Object.values(gameState.pointingTargets))];
     const isMeProver = provers.includes(myId);
     const myProof = gameState.proofs.find((p) => p.playerId === myId);
@@ -48,24 +45,16 @@ export function ProofPhase() {
     function handleCardTap(index: number) {
         if (!isMeProver || submitted || myProof) return;
         if (workingCards.length <= 1) return;
-
         if (selectedA === null) {
             setSelectedA(index);
-            // setSelectedB(null);
         } else if (index === selectedA) {
             setSelectedA(null);
             setPendingOp(null);
             setSelectedB(null);
-        }else if(pendingOp != null) {
-            setSelectedB(index)
-            handleOperator(selectedA, index, pendingOp)
+        } else if (pendingOp != null) {
+            setSelectedB(index);
+            handleOperator(selectedA, index, pendingOp);
         } else {
-            // if (selectedA === index) {
-            //     setSelectedA(null);
-            //     return;
-            // }
-            // Dua kartu dipilih, tunggu operator
-            // handleOperator(selectedA, index);
             setSelectedB(index);
         }
     }
@@ -96,7 +85,6 @@ export function ProofPhase() {
         const newSteps = [...steps, step];
         setSteps(newSteps);
 
-        // Update working cards — hapus dua yang dipakai, tambah hasil
         const newCards = workingCards.filter(
             (_, i) => i !== indexA && i !== indexB,
         );
@@ -109,9 +97,8 @@ export function ProofPhase() {
         setWorkingCards(newCards);
         setSelectedA(null);
         setSelectedB(null);
-        setPendingOp(null)
+        setPendingOp(null);
 
-        // Auto submit kalau tinggal satu kartu
         if (newCards.length === 1) {
             setSubmitted(true);
             submitProof(newSteps);
@@ -130,7 +117,7 @@ export function ProofPhase() {
         setSteps([]);
         setSelectedA(null);
         setSelectedB(null);
-        setPendingOp(null)
+        setPendingOp(null);
         setSubmitted(false);
     }
 
@@ -138,16 +125,16 @@ export function ProofPhase() {
 
     return (
         <div className="h-full flex flex-col items-center justify-center gap-3 p-4">
-            <h3 className="text-white font-bold text-lg">Fase Pembuktian</h3>
+            <h3 className="text-game-text font-heading font-bold text-lg tracking-widest uppercase">
+                Fase Pembuktian
+            </h3>
 
             {/* Timer */}
-            <div className="flex items-center gap-2">
-                <span
-                    className={`font-mono font-bold text-xl ${timer <= 10 ? "text-red-300" : "text-yellow-300"}`}
-                >
-                    {timer}s
-                </span>
-            </div>
+            <span
+                className={`font-mono font-bold text-xl ${timer <= 10 ? "text-game-coral" : "text-game-amber"}`}
+            >
+                {timer}s
+            </span>
 
             {/* Status semua prover */}
             <div className="flex gap-2 flex-wrap justify-center">
@@ -162,18 +149,24 @@ export function ProofPhase() {
                         <div
                             key={proverId}
                             className={`
-                                flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium
+                                flex items-center gap-2 px-3 py-1.5 rounded-[4px] text-xs font-medium border
                                 ${
                                     proof
                                         ? proof.isCorrect
-                                            ? "bg-green-500/30 text-green-300"
-                                            : "bg-red-500/30 text-red-300"
-                                        : "bg-white/10 text-white/70"
+                                            ? "bg-game-green/10 border-game-green/40 text-game-green"
+                                            : "bg-game-coral/10 border-game-coral/40 text-game-coral"
+                                        : "bg-game-surface border-game-border text-game-muted"
                                 }
-                                ${proverId === myId ? "ring-1 ring-yellow-400" : ""}
+                                ${proverId === myId ? "ring-1 ring-game-amber" : ""}
                             `}
                         >
-                            <span>{player?.avatar}</span>
+                            {player?.avatar && (
+                                <img
+                                    src={avatarSrc(player.avatar)}
+                                    alt={player.name}
+                                    className="w-5 h-5 object-contain"
+                                />
+                            )}
                             <span>{player?.name}</span>
                             {proof ? (proof.isCorrect ? " ✓" : " ✗") : " ..."}
                         </div>
@@ -190,11 +183,11 @@ export function ProofPhase() {
                                 key={i}
                                 onClick={() => handleCardTap(i)}
                                 className={`
-                                    w-14 h-20 bg-white rounded-xl border-2 shadow-md
+                                    w-14 h-20 bg-white rounded-[6px] border-2 shadow-md
                                     flex flex-col items-center justify-center transition-all
-                                    ${selectedA === i ? "border-yellow-500 scale-110" : ""}
-                                    ${selectedB === i ? "border-green-500 scale-110" : ""}
-                                    ${selectedA !== i && selectedB !== i ? "border-gray-200 hover:border-blue-300" : ""}
+                                    ${selectedA === i ? "border-game-amber scale-110 shadow-[0_0_12px_rgba(251,191,36,0.4)]" : ""}
+                                    ${selectedB === i ? "border-game-green scale-110 shadow-[0_0_12px_rgba(63,185,80,0.4)]" : ""}
+                                    ${selectedA !== i && selectedB !== i ? "border-gray-200 hover:border-gray-400" : ""}
                                 `}
                             >
                                 <span
@@ -206,32 +199,7 @@ export function ProofPhase() {
                         ))}
                     </div>
 
-                    {/* Operator buttons — muncul setelah pilih kartu pertama */}
-                    {/* {selectedA !== null && (
-                        <div className="flex gap-2">
-                            {OPERATORS.map((op) => (
-                                <button
-                                    key={op}
-                                    onClick={() => {
-                                        // Pilih kartu lain dulu — untuk now pilih kartu selanjutnya otomatis
-                                        const nextIndex =
-                                            workingCards.findIndex(
-                                                (_, i) => i !== selectedA,
-                                            );
-                                        if (nextIndex !== -1)
-                                            handleOperator(
-                                                selectedA,
-                                                nextIndex,
-                                                op,
-                                            );
-                                    }}
-                                    className="w-10 h-10 bg-yellow-400 text-blue-900 rounded-lg font-bold text-lg hover:bg-yellow-300 transition-colors"
-                                >
-                                    {op === "*" ? "×" : op === "/" ? "÷" : op}
-                                </button>
-                            ))}
-                        </div>
-                    )} */}
+                    {/* Operators */}
                     {selectedA !== null && (
                         <div className="flex gap-2">
                             {OPERATORS.map((op) => (
@@ -239,23 +207,21 @@ export function ProofPhase() {
                                     key={op}
                                     onClick={() => {
                                         if (selectedB !== null) {
-                                            // Dua kartu sudah dipilih, langsung eksekusi
                                             handleOperator(
                                                 selectedA,
                                                 selectedB,
                                                 op,
                                             );
                                         } else {
-                                            // Baru satu kartu, set pending operator
                                             setPendingOp(op);
                                         }
                                     }}
                                     className={`
-                                        w-10 h-10 rounded-lg font-bold text-lg transition-colors
+                                        w-10 h-10 rounded-[4px] font-heading font-bold text-lg transition-all
                                         ${
                                             pendingOp === op
-                                                ? "bg-blue-500 text-white"
-                                                : "bg-yellow-400 text-blue-900 hover:bg-yellow-300"
+                                                ? "bg-game-cyan text-[#001c2d] shadow-[0_0_12px_rgba(56,189,248,0.3)]"
+                                                : "bg-game-amber text-amber-950 hover:bg-amber-300"
                                         }
                                     `}
                                 >
@@ -267,15 +233,15 @@ export function ProofPhase() {
 
                     {/* Steps trail */}
                     {steps.length > 0 && (
-                        <div className="text-white/70 text-xs text-center">
+                        <div className="text-game-muted text-xs text-center font-mono">
                             {steps.map((s, i) => (
                                 <span key={i}>
                                     {s.a}{" "}
                                     {s.operator === "*"
                                         ? "×"
                                         : s.operator === "/"
-                                            ? "÷"
-                                            : s.operator}{" "}
+                                          ? "÷"
+                                          : s.operator}{" "}
                                     {s.b} = {s.result}
                                     {i < steps.length - 1 ? " → " : ""}
                                 </span>
@@ -285,26 +251,30 @@ export function ProofPhase() {
 
                     <button
                         onClick={handleReset}
-                        className="text-white/50 text-xs hover:text-white/80 underline"
+                        className="text-game-muted/50 text-xs hover:text-game-muted underline transition-colors"
                     >
                         Reset
                     </button>
                 </div>
             ) : isMeProver && myProof ? (
                 <div
-                    className={`text-center p-4 rounded-xl ${myProof.isCorrect ? "bg-green-500/20" : "bg-red-500/20"}`}
+                    className={`text-center p-4 rounded-[4px] border ${
+                        myProof.isCorrect
+                            ? "bg-game-green/10 border-game-green/40"
+                            : "bg-game-coral/10 border-game-coral/40"
+                    }`}
                 >
                     <p className="text-2xl mb-1">
                         {myProof.isCorrect ? "✅" : "❌"}
                     </p>
                     <p
-                        className={`font-bold ${myProof.isCorrect ? "text-green-300" : "text-red-300"}`}
+                        className={`font-heading font-bold tracking-wider ${myProof.isCorrect ? "text-game-green" : "text-game-coral"}`}
                     >
                         {myProof.isCorrect ? "Benar!" : "Salah!"}
                     </p>
                 </div>
             ) : (
-                <p className="text-white/60 text-sm text-center">
+                <p className="text-game-muted text-sm text-center">
                     Menunggu pemain lain membuktikan...
                 </p>
             )}

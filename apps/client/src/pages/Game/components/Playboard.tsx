@@ -6,8 +6,6 @@ import { ProofPhase } from "./phases/ProofPhase";
 import { ResultPhase } from "./phases/ResultPhase";
 import { RulesModal } from "./RulesModal";
 
-// const RULES_SEEN_KEY = "wmc24_rules_seen";
-
 interface PlayboardProps {
     onShowRules: () => void;
 }
@@ -16,20 +14,10 @@ export function Playboard({ onShowRules }: PlayboardProps) {
     const { gameState, phase } = useGameContext();
     const [showRules, setShowRules] = useState(false);
 
-    // useEffect(() => {
-    //     if (phase === "playing" && gameState?.round === 1) {
-    //         const seen = localStorage.getItem(RULES_SEEN_KEY);
-    //         if (!seen) {
-    //             setShowRules(true);
-    //             localStorage.setItem(RULES_SEEN_KEY, "1");
-    //         }
-    //     }
-    // }, [phase, gameState?.round]);
-
     if (!gameState || !phase) {
         return (
             <div className="h-full flex items-center justify-center">
-                <p className="text-white/50 text-sm animate-pulse">
+                <p className="text-game-muted text-sm animate-pulse">
                     Memuat game...
                 </p>
             </div>
@@ -37,10 +25,10 @@ export function Playboard({ onShowRules }: PlayboardProps) {
     }
 
     return (
-        <div className="h-full bg-white/10 rounded-2xl overflow-hidden backdrop-blur-sm">
+        <div className="h-full card-moco card-moco-cyan relative overflow-hidden">
             <button
                 onClick={onShowRules}
-                className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 text-white text-sm font-bold flex items-center justify-center transition-colors"
+                className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-game-surface2 border border-game-border hover:border-game-cyan/50 text-game-muted hover:text-game-cyan text-sm font-bold flex items-center justify-center transition-all"
                 title="How to play"
             >
                 ?
@@ -58,7 +46,7 @@ export function Playboard({ onShowRules }: PlayboardProps) {
             {phase === "result" && <ResultPhase />}
             {phase === "finished" && (
                 <div className="h-full flex items-center justify-center">
-                    <p className="text-white font-bold text-xl">
+                    <p className="text-game-cyan font-heading font-bold text-xl tracking-widest">
                         Game Selesai!
                     </p>
                 </div>

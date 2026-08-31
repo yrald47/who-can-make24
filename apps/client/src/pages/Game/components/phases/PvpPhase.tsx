@@ -33,7 +33,6 @@ export function PvpPhase() {
     );
     const [steps, setSteps] = useState<ProofStep[]>([]);
     const [submitted, setSubmitted] = useState(false);
-    const [skipped, setSkipped] = useState(false);
 
     if (!gameState || !currentRoom) return null;
 
@@ -46,7 +45,6 @@ export function PvpPhase() {
 
     function handleCardTap(index: number) {
         if (submitted || myProof) return;
-        if (submitted || myProof || winnerProof) return;
         if (workingCards.length <= 1) return;
 
         if (selectedA === null) {
@@ -136,7 +134,7 @@ export function PvpPhase() {
 
             {/* Timer */}
             <div
-                className={`ont-bold text-2xl font-heading ${timer <= 10 ? "text-game-coral" : "text-game-amber"}`}
+                className={`font-mono font-bold text-2xl font-heading ${timer <= 10 ? "text-game-coral" : "text-game-amber"}`}
             >
                 {timer}s
             </div>
@@ -177,19 +175,6 @@ export function PvpPhase() {
                 ))}
             </div>
 
-            {/* Opponent menang duluan — tampil di atas cards */}
-            {!myProof && winnerProof && winner && (
-                <div className="text-center p-3 rounded-sm border border-game-amber/40 bg-game-amber/10 w-full max-w-xs">
-                    <p className="text-game-amber font-heading tracking-widest text-sm">
-                        ⚡ {winner.id === myId ? "YOU" : winner.name} MADE 24
-                        FIRST!
-                    </p>
-                    <p className="text-game-muted text-xs mt-1">
-                        Next round in 3s...
-                    </p>
-                </div>
-            )}
-
             {/* Cards */}
             {!myProof ? (
                 <div className="flex flex-col items-center gap-3 w-full max-w-xs">
@@ -198,9 +183,8 @@ export function PvpPhase() {
                             <button
                                 key={i}
                                 onClick={() => handleCardTap(i)}
-                                disabled={!!myProof || !!winnerProof}
                                 className={`
-                                    w-16 h-24 rounded-sm border flex flex-col items-center justify-center
+                                    w-16 h-24 rounded-[4px] border flex flex-col items-center justify-center
                                     font-heading font-bold transition-all
                                     ${
                                         selectedA === i
@@ -228,11 +212,11 @@ export function PvpPhase() {
                                                 : gameState.currentCards[
                                                         card.originalIndex
                                                     ]?.suit === "diamonds"
-                                                    ? "♦"
-                                                    : gameState.currentCards[
-                                                            card.originalIndex
-                                                        ]?.suit === "spades"
-                                                        ? "♠"
+                                                  ? "♦"
+                                                  : gameState.currentCards[
+                                                          card.originalIndex
+                                                      ]?.suit === "spades"
+                                                    ? "♠"
                                                     : "♣"}
                                         </span>
                                     </>
@@ -263,7 +247,6 @@ export function PvpPhase() {
                                             setPendingOp(op);
                                         }
                                     }}
-                                    disabled={!!myProof || !!winnerProof}
                                     className={`
                                         w-12 h-12 rounded-[3px] border text-lg font-bold font-mono transition-all
                                         ${
@@ -306,11 +289,7 @@ export function PvpPhase() {
                 </div>
             ) : (
                 <div
-                    className={`text-center p-4 rounded-sm border w-full max-w-xs ${
-                        myProof.isCorrect
-                            ? "border-game-cyan/40 bg-game-cyan/10"
-                            : "border-game-coral/40 bg-game-coral/10"
-                    }`}
+                    className={`text-center p-4 rounded-[4px] border ${myProof.isCorrect ? "border-game-cyan/40 bg-game-cyan/10" : "border-game-coral/40 bg-game-coral/10"}`}
                 >
                     <p className="text-2xl mb-1">
                         {myProof.isCorrect ? "✓" : "✗"}
@@ -318,44 +297,14 @@ export function PvpPhase() {
                     <p
                         className={`font-heading tracking-widest text-sm ${myProof.isCorrect ? "text-game-cyan" : "text-game-coral"}`}
                     >
-                        {myProof.isCorrect
-                            ? "YOU MADE 24!"
-                            : "OPPONENT MADE 24 FIRST"}
+                        {myProof.isCorrect ? "YOU MADE 24!" : "WRONG ANSWER"}
                     </p>
-                    {winner && (
+                    {winner && !myProof.isCorrect && (
                         <p className="text-game-muted text-xs mt-1">
-                            {winner.id === myId
-                                ? "You got it! +1 point"
-                                : `${winner.name} got it first`}
+                            {winner.name} got it first
                         </p>
                     )}
-                    <p className="text-game-muted/50 text-xs mt-1">
-                        Next round in 3s...
-                    </p>
                 </div>
-            )}
-
-            {/* {timer <= 30 && !myProof && (
-                <button
-                    onClick={() => socket.emit("game:pvp-surrender")}
-                    className="text-game-muted/50 text-xs hover:text-game-coral transition-colors"
-                >
-                    Skip hand
-                </button>
-            )} */}
-            {timer <= 30 && !myProof && !skipped && (
-                <button
-                    onClick={() => {
-                        setSkipped(true);
-                        socket.emit("game:pvp-surrender");
-                    }}
-                    className="text-game-muted/50 text-xs hover:text-game-coral transition-colors"
-                >
-                    Skip hand
-                </button>
-            )}
-            {skipped && (
-                <p className="text-game-muted/50 text-xs">Skipping...</p>
             )}
         </div>
     );

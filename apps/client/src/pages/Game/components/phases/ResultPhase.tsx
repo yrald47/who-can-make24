@@ -1,6 +1,7 @@
 import { useGameContext } from "../../../../context/useGameContext";
 import { useRoomContext } from "../../../../context/useRoomContext";
 import { useSocket } from "../../../../hooks/useSocket";
+import { avatarSrc } from "@who-can-make24/shared";
 
 export function ResultPhase() {
     const { gameState } = useGameContext();
@@ -15,9 +16,11 @@ export function ResultPhase() {
             (gameState.scores[a.playerId] ?? 0),
     );
 
+    const RANK_EMOJI: Record<number, string> = { 0: "🥇", 1: "🥈", 2: "🥉" };
+
     return (
         <div className="h-full flex flex-col items-center justify-center gap-4 p-4 overflow-y-auto">
-            <h3 className="text-white font-bold text-lg">
+            <h3 className="text-game-text font-heading font-bold text-lg tracking-widest uppercase">
                 Hasil Ronde {gameState.round}
             </h3>
 
@@ -26,41 +29,39 @@ export function ResultPhase() {
                     const player = currentRoom.players.find(
                         (p) => p.id === playerId,
                     );
-                    const isMe = playerId === socket.id; // ← cek apakah ini player saya
+                    const isMe = playerId === socket.id;
                     if (!player) return null;
 
                     return (
                         <div
                             key={playerId}
                             className={`
-                                flex items-center gap-3 rounded-xl p-3 transition-all
+                                flex items-center gap-3 rounded-[4px] p-3 border transition-all
                                 ${
                                     isMe
-                                        ? "bg-yellow-400/20 border border-yellow-400/50 ring-1 ring-yellow-400"
-                                        : "bg-white/10"
+                                        ? "bg-game-amber/10 border-game-amber/40 ring-1 ring-game-amber/30"
+                                        : "bg-game-surface border-game-border"
                                 }
                             `}
                         >
                             {/* Rank */}
-                            <span className="text-sm w-4 text-center text-white/50">
-                                {index === 0
-                                    ? "🥇"
-                                    : index === 1
-                                        ? "🥈"
-                                        : index === 2
-                                        ? "🥉"
-                                        : `${index + 1}`}
+                            <span className="text-sm w-5 text-center text-game-muted shrink-0">
+                                {RANK_EMOJI[index] ?? `${index + 1}`}
                             </span>
 
-                            <span className="text-2xl">{player.avatar}</span>
+                            <img
+                                src={avatarSrc(player.avatar)}
+                                alt={player.name}
+                                className="w-8 h-8 object-contain shrink-0"
+                            />
 
                             <div className="flex-1">
                                 <p
-                                    className={`text-sm font-medium ${isMe ? "text-yellow-300" : "text-white"}`}
+                                    className={`text-sm font-medium ${isMe ? "text-game-amber" : "text-game-text"}`}
                                 >
                                     {player.name}
                                     {isMe && (
-                                        <span className="ml-1 text-xs text-yellow-400/70">
+                                        <span className="ml-1 text-xs text-game-muted">
                                             (kamu)
                                         </span>
                                     )}
@@ -68,13 +69,19 @@ export function ResultPhase() {
                             </div>
 
                             <span
-                                className={`font-bold text-sm ${delta > 0 ? "text-green-300" : delta < 0 ? "text-red-300" : "text-white/50"}`}
+                                className={`font-heading font-bold text-sm ${
+                                    delta > 0
+                                        ? "text-game-green"
+                                        : delta < 0
+                                            ? "text-game-coral"
+                                            : "text-game-muted/50"
+                                }`}
                             >
                                 {delta > 0 ? "+" : ""}
                                 {delta}
                             </span>
 
-                            <span className="text-white/60 text-xs font-mono">
+                            <span className="text-game-muted text-xs font-mono">
                                 {gameState.scores[playerId] ?? 0}pt
                             </span>
                         </div>
@@ -82,9 +89,10 @@ export function ResultPhase() {
                 })}
             </div>
 
-            <p className="text-white/50 text-xs animate-pulse">
+            <p className="text-game-muted/50 text-xs animate-pulse font-heading tracking-wider">
                 Ronde berikutnya dalam 5 detik...
             </p>
         </div>
     );
 }
+ 
