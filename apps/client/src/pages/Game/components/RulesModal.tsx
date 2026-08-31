@@ -1,138 +1,136 @@
-// import { useState, useEffect } from "react";
-
 interface RulesModalProps {
     onClose: () => void;
 }
 
 export function RulesModal({ onClose }: RulesModalProps) {
     return (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto shadow-2xl">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="card-moco card-moco-cyan corner-accent-moco corner-accent-moco-cyan w-full max-w-lg max-h-[80vh] flex flex-col">
                 {/* Header */}
-                <div className="sticky top-0 bg-white px-6 py-4 border-b border-gray-100 flex items-center justify-between rounded-t-2xl">
-                    <h2 className="font-bold text-lg text-gray-900">
-                        How to Play
-                    </h2>
+                <div className="top-bar-moco top-bar-moco-cyan shrink-0">
+                    <span>How to Play</span>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+                        className="text-[#001c2d] hover:opacity-60 transition-opacity text-lg font-bold leading-none"
                     >
                         ✕
                     </button>
                 </div>
 
                 {/* Content */}
-                <div className="px-6 py-4 flex flex-col gap-4 text-sm text-gray-700">
+                <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-5">
                     {/* Goal */}
                     <div>
-                        <p className="font-semibold text-blue-600 uppercase tracking-wider text-xs mb-1">
-                            Goal
-                        </p>
-                        <p>
+                        <p className="section-label mb-1.5">Goal</p>
+                        <p className="text-game-muted text-sm leading-relaxed">
                             Use all 4 cards with any arithmetic operation (
-                            <span className="font-mono">+ − × ÷</span>) to make{" "}
-                            <span className="font-bold text-blue-600">24</span>.
+                            <span className="font-mono text-game-cyan">
+                                + − × ÷
+                            </span>
+                            ) to make{" "}
+                            <span className="font-bold text-game-cyan">24</span>
+                            .
                         </p>
                     </div>
 
                     {/* Phases */}
                     <div>
-                        <p className="font-semibold text-blue-600 uppercase tracking-wider text-xs mb-2">
-                            Round Phases
-                        </p>
-                        <div className="flex flex-col gap-2">
-                            <div className="flex gap-3">
-                                <span className="text-lg">🔔</span>
-                                <div>
-                                    <p className="font-medium">Playing Phase</p>
-                                    <p className="text-gray-500 text-xs">
-                                        4 cards are shown. Press the bell if you
-                                        know the answer. The last player who
-                                        hasn't pressed becomes the loser
-                                        candidate. If nobody presses, the
-                                        combination is skipped.
-                                    </p>
+                        <p className="section-label mb-2">Round Phases</p>
+                        <div className="flex flex-col gap-3">
+                            {[
+                                {
+                                    icon: "🔔",
+                                    title: "Playing Phase",
+                                    desc: "4 cards are shown. Press the bell if you know the answer. The last player who hasn't pressed becomes the loser candidate. If nobody presses, the combination is skipped.",
+                                },
+                                {
+                                    icon: "👆",
+                                    title: "Pointing Phase",
+                                    desc: "Loser candidates must point to a bell-presser to prove the answer. If time runs out, the system picks randomly.",
+                                },
+                                {
+                                    icon: "🧮",
+                                    title: "Proof Phase",
+                                    desc: "Pointed players must prove the answer by tapping cards step by step. Auto-submitted when one card remains.",
+                                },
+                            ].map(({ icon, title, desc }) => (
+                                <div
+                                    key={title}
+                                    className="flex gap-3 p-3 bg-game-surface2 border border-game-border rounded-[4px]"
+                                >
+                                    <span className="text-xl shrink-0">
+                                        {icon}
+                                    </span>
+                                    <div>
+                                        <p className="text-game-text text-sm font-semibold mb-0.5">
+                                            {title}
+                                        </p>
+                                        <p className="text-game-muted text-xs leading-relaxed">
+                                            {desc}
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="flex gap-3">
-                                <span className="text-lg">👆</span>
-                                <div>
-                                    <p className="font-medium">
-                                        Pointing Phase
-                                    </p>
-                                    <p className="text-gray-500 text-xs">
-                                        Loser candidates must point to a
-                                        bell-presser to prove the answer. If
-                                        time runs out, the system picks
-                                        randomly.
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="flex gap-3">
-                                <span className="text-lg">🧮</span>
-                                <div>
-                                    <p className="font-medium">Proof Phase</p>
-                                    <p className="text-gray-500 text-xs">
-                                        Pointed players must prove the answer by
-                                        tapping cards step by step.
-                                        Auto-submitted when one card remains.
-                                    </p>
-                                </div>
-                            </div>
+                            ))}
                         </div>
                     </div>
 
                     {/* Scoring */}
                     <div>
-                        <p className="font-semibold text-blue-600 uppercase tracking-wider text-xs mb-2">
-                            Scoring
-                        </p>
-                        <div className="flex flex-col gap-1 text-xs">
-                            <div className="flex justify-between py-1 border-b border-gray-50">
-                                <span>Press the bell</span>
-                                <span className="text-green-600 font-medium">
-                                    +1
-                                </span>
-                            </div>
-                            <div className="flex justify-between py-1 border-b border-gray-50">
-                                <span>Loser candidate</span>
-                                <span className="text-red-500 font-medium">
-                                    −1
-                                </span>
-                            </div>
-                            <div className="flex justify-between py-1 border-b border-gray-50">
-                                <span>Pointed & answer correct</span>
-                                <span className="text-green-600 font-medium">
-                                    +3
-                                </span>
-                            </div>
-                            <div className="flex justify-between py-1 border-b border-gray-50">
-                                <span>Pointed & answer wrong</span>
-                                <span className="text-red-500 font-medium">
-                                    −4
-                                </span>
-                            </div>
-                            <div className="flex justify-between py-1 border-b border-gray-50">
-                                <span>Pointed someone correct</span>
-                                <span className="text-red-500 font-medium">
-                                    −2
-                                </span>
-                            </div>
-                            <div className="flex justify-between py-1">
-                                <span>Pointed someone wrong</span>
-                                <span className="text-green-600 font-medium">
-                                    +2
-                                </span>
-                            </div>
+                        <p className="section-label mb-2">Scoring</p>
+                        <div className="border border-game-border rounded-[4px] overflow-hidden">
+                            {[
+                                {
+                                    label: "Press the bell",
+                                    score: "+1",
+                                    pos: true,
+                                },
+                                {
+                                    label: "Loser candidate",
+                                    score: "−1",
+                                    pos: false,
+                                },
+                                {
+                                    label: "Pointed & answer correct",
+                                    score: "+3",
+                                    pos: true,
+                                },
+                                {
+                                    label: "Pointed & answer wrong",
+                                    score: "−4",
+                                    pos: false,
+                                },
+                                {
+                                    label: "Pointed someone correct",
+                                    score: "−2",
+                                    pos: false,
+                                },
+                                {
+                                    label: "Pointed someone wrong",
+                                    score: "+2",
+                                    pos: true,
+                                },
+                            ].map(({ label, score, pos }, i, arr) => (
+                                <div
+                                    key={label}
+                                    className={`flex justify-between items-center px-3 py-2 text-xs ${i < arr.length - 1 ? "border-b border-game-border" : ""}`}
+                                >
+                                    <span className="text-game-muted">
+                                        {label}
+                                    </span>
+                                    <span
+                                        className={`font-heading font-bold ${pos ? "text-game-green" : "text-game-coral"}`}
+                                    >
+                                        {score}
+                                    </span>
+                                </div>
+                            ))}
                         </div>
                     </div>
 
                     {/* Surrender */}
                     <div>
-                        <p className="font-semibold text-blue-600 uppercase tracking-wider text-xs mb-1">
-                            Surrender
-                        </p>
-                        <p className="text-gray-500 text-xs">
+                        <p className="section-label mb-1.5">Surrender</p>
+                        <p className="text-game-muted text-xs leading-relaxed">
                             After 30 seconds, a surrender button appears. If
                             majority surrender and nobody pressed the bell, the
                             combination is skipped with no score change.
@@ -140,12 +138,13 @@ export function RulesModal({ onClose }: RulesModalProps) {
                     </div>
                 </div>
 
-                <div className="px-6 py-4 border-t border-gray-100">
+                {/* Footer */}
+                <div className="px-5 py-4 border-t border-game-border shrink-0">
                     <button
                         onClick={onClose}
-                        className="w-full bg-blue-500 text-white font-medium py-2 rounded-xl hover:bg-blue-600 transition-colors"
+                        className="btn-moco btn-moco-cyan w-full"
                     >
-                        Got it, let's play!
+                        <span>Got it, let's play!</span>
                     </button>
                 </div>
             </div>

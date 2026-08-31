@@ -10,9 +10,6 @@ export function GameOver() {
     const { socket } = useSocket();
 
     const myId = socket.id ?? "";
-
-    // Gunakan players dari currentRoom atau dari pvpCoward snapshot
-    // const players = currentRoom?.players ?? pvpCoward?.players ?? [];
     const players = pvpCoward
         ? pvpCoward.players
         : (currentRoom?.players ?? []);
@@ -26,7 +23,6 @@ export function GameOver() {
         currentRoom?.players.find((p) => p.id === myId)?.isHost ?? false;
     const amICoward = pvpCoward?.loserId === myId;
     const amIWinner = pvpCoward?.winnerId === myId;
-
     const RANK_EMOJI: Record<number, string> = { 0: "🥇", 1: "🥈", 2: "🥉" };
 
     function handleReturnToLobby() {
@@ -80,57 +76,53 @@ export function GameOver() {
                     </div>
                 )}
 
-                {/* Podium — hanya kalau 3+ player dan bukan coward scenario */}
+                {/* Podium */}
                 {!pvpCoward && sorted.length >= 3 && (
                     <div className="flex items-end justify-center gap-4 mt-4">
+                        {/* 2nd */}
                         <div className="flex flex-col items-center gap-1">
-                            <span className="text-4xl w-15 h-15 object-contain">
-                                <img
-                                    src={avatarSrc(sorted[1]?.avatar ?? "")}
-                                    alt={sorted[1]?.avatar}
-                                    className="w-10 h-10 object-contain"
-                                />
-                            </span>
+                            <img
+                                src={avatarSrc(sorted[1]?.avatar ?? "")}
+                                alt={sorted[1]?.name}
+                                className="w-10 h-10 object-contain"
+                            />
                             <span className="text-2xl">🥈</span>
                             <p className="text-game-text text-xs font-medium">
-                                {/* {sorted[1]?.name} */}
+                                {sorted[1]?.name}
                             </p>
-                            <p className="text-game-muted text-xs">
+                            <p className="text-game-muted text-xs font-mono">
                                 {finalScores[sorted[1]?.id ?? ""] ?? 0}pt
                             </p>
                             <div className="w-16 h-16 bg-game-muted/20 rounded-t-[3px]" />
                         </div>
+                        {/* 1st */}
                         <div className="flex flex-col items-center gap-1 -mb-4">
-                            <span className="text-5xl">
-                                {/* {sorted[0]?.avatar} */}
-                                <img
-                                    src={avatarSrc(sorted[0]?.avatar)}
-                                    alt={sorted[0]?.avatar}
-                                    className="w-12 h-12 object-contain"
-                                />
-                            </span>
+                            <img
+                                src={avatarSrc(sorted[0]?.avatar ?? "")}
+                                alt={sorted[0]?.name}
+                                className="w-12 h-12 object-contain"
+                            />
                             <span className="text-3xl">🥇</span>
                             <p className="text-game-text text-sm font-bold">
                                 {sorted[0]?.name}
                             </p>
-                            <p className="text-game-amber text-xs">
+                            <p className="text-game-amber text-xs font-mono">
                                 {finalScores[sorted[0]?.id ?? ""] ?? 0}pt
                             </p>
                             <div className="w-16 h-24 bg-game-amber/20 rounded-t-[3px]" />
                         </div>
+                        {/* 3rd */}
                         <div className="flex flex-col items-center gap-1">
-                            <span className="text-3xl">
-                                <img
-                                    src={avatarSrc(sorted[2]?.avatar)}
-                                    alt={sorted[2]?.avatar}
-                                    className="w-9 h-9 object-contain"
-                                />
-                            </span>
+                            <img
+                                src={avatarSrc(sorted[2]?.avatar ?? "")}
+                                alt={sorted[2]?.name}
+                                className="w-9 h-9 object-contain"
+                            />
                             <span className="text-xl">🥉</span>
                             <p className="text-game-text text-xs font-medium">
                                 {sorted[2]?.name}
                             </p>
-                            <p className="text-game-muted text-xs">
+                            <p className="text-game-muted text-xs font-mono">
                                 {finalScores[sorted[2]?.id ?? ""] ?? 0}pt
                             </p>
                             <div className="w-16 h-10 bg-game-coral/20 rounded-t-[3px]" />
@@ -159,19 +151,16 @@ export function GameOver() {
                                     ${!isCoward && !isWinner && !isMe ? "border-game-border bg-game-surface" : ""}
                                 `}
                             >
-                                <span className="text-sm w-6 text-center text-game-muted">
+                                <span className="text-sm w-6 text-center text-game-muted shrink-0">
                                     {isCoward
                                         ? "🏳️"
                                         : (RANK_EMOJI[index] ?? `${index + 1}`)}
                                 </span>
-                                <span className="text-2xl">
-                                    {/* {player.avatar} */}
-                                    <img
-                                        src={avatarSrc(player.avatar)}
-                                        alt={player.avatar}
-                                        className="w-10 h-10 object-contain"
-                                    />
-                                </span>
+                                <img
+                                    src={avatarSrc(player.avatar)}
+                                    alt={player.name}
+                                    className="w-8 h-8 object-contain shrink-0"
+                                />
                                 <div className="flex-1">
                                     <p
                                         className={`text-sm font-medium ${isMe ? "text-game-cyan" : "text-game-text"}`}
@@ -189,7 +178,7 @@ export function GameOver() {
                                         </p>
                                     )}
                                 </div>
-                                <span className="font-heading font-bold text-sm text-game-amber">
+                                <span className="font-heading font-bold text-sm text-game-amber font-mono">
                                     {finalScores[player.id] ?? 0}pt
                                 </span>
                             </div>
@@ -207,7 +196,7 @@ export function GameOver() {
                             <span>🔄 Play Again</span>
                         </button>
                     ) : currentRoom ? (
-                        <div className="w-full border border-game-border text-game-muted text-center py-3 rounded-[4px] text-sm">
+                        <div className="w-full border border-game-border text-game-muted text-center py-3 rounded-[4px] text-sm font-heading tracking-wider">
                             Waiting for host to return to lobby...
                         </div>
                     ) : null}
