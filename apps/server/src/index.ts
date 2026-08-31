@@ -63,5 +63,5 @@ io.on("connection", (socket) => {
 });
 
 httpServer.listen(3001, "0.0.0.0", () => {
-    console.log("Server running on http://localhost:3001");
+    log("Server running on http://localhost:3001");
 });
