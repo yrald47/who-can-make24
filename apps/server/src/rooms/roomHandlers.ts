@@ -29,6 +29,7 @@ import {
     joinRateLimiter,
     clearAllRateLimits,
 } from "../lib/rateLimiter";
+import { log } from "../lib/logger";
 
 export function registerRoomHandlers(io: Server, socket: Socket) {
     function makePlayer(name: string, avatar: string): Player {
@@ -120,7 +121,7 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
             }
 
             socket.emit("room:created", { room });
-            console.log(
+            log(
                 `Room created: ${room.name} (${room.id}) by ${host.name} [wild: ${room.isWild}]`,
             );
         },
@@ -152,7 +153,7 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
         });
         socket.emit("room:joined", { room: result.room });
 
-        console.log(`${player.name} joined room ${roomId}`);
+        log(`${player.name} joined room ${roomId}`);
     });
 
     // RECONNECT
@@ -169,11 +170,11 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
             avatar: string;
             oldSocketId?: string;
         }) => {
-            console.log(
+            log(
                 `room:reconnect received - roomId: ${roomId}, name: ${name}, oldSocketId: ${oldSocketId}`,
             );
             const room = await getRoomById(roomId);
-            console.log(
+            log(
                 `room found: ${room?.id}, players: ${JSON.stringify(room?.players.map((p) => p.id))}`,
             );
 
@@ -229,9 +230,9 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
 
     // START GAME
     socket.on("game:start", async () => {
-        console.log(`game:start received from ${socket.id}`);
+        log(`game:start received from ${socket.id}`);
         const room = await getRoomByPlayerId(socket.id);
-        console.log(`room found:`, room?.id, room?.players.length);
+        log(`room found:`, room?.id, room?.players.length);
         if (!room) return;
 
         const player = room.players.find((p) => p.id === socket.id);
@@ -295,7 +296,7 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
             }
         }, 1000);
 
-        console.log("game:started emitted to room", room.id);
+        log("game:started emitted to room", room.id);
     });
 
     // LEAVE ROOM
@@ -360,7 +361,7 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
             io.emit("room:removed", { roomId });
         }
 
-        console.log(`Player ${socket.id} left`);
+        log(`Player ${socket.id} left`);
     });
 
     // RETURN TO LOBBY
@@ -386,9 +387,9 @@ export function registerRoomHandlers(io: Server, socket: Socket) {
     // DISCONNECT
     socket.on("disconnect", async () => {
         clearAllRateLimits(socket.id);
-        console.log(`Disconnect handler called for ${socket.id}`);
+        log(`Disconnect handler called for ${socket.id}`);
         const currentRoom = await getRoomByPlayerId(socket.id);
-        console.log(`Room found for disconnecting player: ${currentRoom?.id}`);
+        log(`Room found for disconnecting player: ${currentRoom?.id}`);
 
         if (!currentRoom) return;
 

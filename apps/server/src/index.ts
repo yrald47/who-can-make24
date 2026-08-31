@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 import { GAME_CONSTANTS } from "@who-can-make24/shared";
 import { registerRoomHandlers } from "./rooms/roomHandlers";
 import { registerGameHandlers } from "./game/gameHandlers";
+import { log } from "./lib/logger";
 
 const app = new Hono();
 
@@ -13,6 +14,19 @@ app.get("/", (c) => {
         targetNumber: GAME_CONSTANTS.TARGET_NUMBER,
     });
 });
+
+// const originalLog = console.log;
+// console.log = (...args) => {
+//     const timestamp = new Date().toISOString();
+//     originalLog(`[${timestamp}]`, ...args);
+// };
+
+const nativeLog = console.log.bind(console);
+
+// console.log = (...args: unknown[]) => {
+//     const timestamp = new Date().toISOString();
+//     nativeLog(`[${timestamp.replace("T", " ").replace("Z", " UTC")}]`, ...args);
+// };
 
 // Native HTTP server
 const httpServer = createServer();
@@ -43,7 +57,7 @@ httpServer.on("request", async (req, res) => {
 });
 
 io.on("connection", (socket) => {
-    console.log(`Player connected: ${socket.id}`);
+    log(`Player connected: ${socket.id}`);
     registerRoomHandlers(io, socket);
     registerGameHandlers(io, socket);
 });

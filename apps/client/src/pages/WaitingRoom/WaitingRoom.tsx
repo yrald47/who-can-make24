@@ -54,52 +54,40 @@ export function WaitingRoom() {
 
             {/* Main */}
             <div className="flex-1 flex items-center justify-center p-4">
-                <div className="relative w-full max-w-lg rounded-[4px] backdrop-blur-game bg-[rgba(18,22,30,0.82)] border border-game-border shadow-[0_0_0_1px_rgba(0,0,0,0.6),0_20px_60px_rgba(0,0,0,0.6)]">
+                <div className="card-moco card-moco-cyan corner-accent-moco corner-accent-moco-cyan w-full max-w-lg">
                     {/* Room info */}
-                    <div className="p-6 border-b border-game-border">
-                        <div className="flex items-start justify-between gap-3">
-                            <div>
-                                <h2 className="font-heading text-game-text text-2xl font-bold tracking-wide">
-                                    {room.name}
-                                </h2>
-                                <p className="text-game-muted text-xs mt-1 flex items-center gap-2">
-                                    <span>
-                                        {room.players.length}/{room.maxPlayers}{" "}
-                                        players
-                                    </span>
-                                    <span>·</span>
-                                    <span className="uppercase tracking-wider">
-                                        {room.mode}
-                                    </span>
-                                    {room.isWild && (
-                                        <span className="text-game-amber">
-                                            🃏 Wild
-                                        </span>
-                                    )}
-                                    {room.isPrivate && (
-                                        <span className="border border-game-border px-1.5 py-0.5 rounded-[3px] text-[0.6rem] text-game-muted">
-                                            🔒 {room.code}
-                                        </span>
-                                    )}
-                                </p>
-                            </div>
-
-                            {/* Share button */}
-                            <button
-                                onClick={handleShare}
-                                className={`
-                                    flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] border text-xs
-                                    font-heading tracking-wider transition-all whitespace-nowrap
-                                    ${
-                                        copied
-                                            ? "border-game-cyan/50 bg-game-cyan/10 text-game-cyan"
-                                            : "border-game-border text-game-muted hover:border-game-cyan/40 hover:text-game-cyan"
-                                    }
-                                `}
-                            >
-                                {copied ? "✓ Copied!" : "🔗 Get a Challenger"}
-                            </button>
+                    <div className="top-bar-moco top-bar-moco-cyan">
+                        <div className="flex flex-col gap-0.5">
+                            <span className="font-heading font-bold tracking-wide">
+                                {room.name}
+                            </span>
+                            <span className="text-[0.6rem] text-[#001c2d]/70 flex items-center gap-2">
+                                <span>
+                                    {room.players.length}/{room.maxPlayers}{" "}
+                                    players
+                                </span>
+                                <span>·</span>
+                                <span className="uppercase tracking-wider">
+                                    {room.mode}
+                                </span>
+                                {room.isWild && <span>🃏 Wild</span>}
+                                {room.isPrivate && <span>🔒 {room.code}</span>}
+                            </span>
                         </div>
+                        <button
+                            onClick={handleShare}
+                            className={`
+                                flex items-center gap-1.5 px-3 py-1 rounded-[3px] border text-[0.65rem]
+                                font-heading tracking-wider transition-all whitespace-nowrap
+                                ${
+                                    copied
+                                        ? "border-game-cyan/50 bg-game-cyan/10 text-game-cyan"
+                                        : "border-[#001c2d]/30 text-[#001c2d]/70 hover:border-[#001c2d]/60 hover:text-[#001c2d]"
+                                }
+                            `}
+                        >
+                            {copied ? "✓ Copied!" : "🔗 Get a Challenger"}
+                        </button>
                     </div>
 
                     {/* Player list */}
@@ -118,13 +106,11 @@ export function WaitingRoom() {
                                         }
                                     `}
                                 >
-                                    <span className="text-2xl w-15 h-15 object-contain">
-                                        {/* {player.avatar} */}
-                                        <img
-                                            src={avatarSrc(player.avatar)}
-                                            alt={player.avatar}
-                                        />
-                                    </span>
+                                    <img
+                                        src={avatarSrc(player.avatar)}
+                                        alt={player.name}
+                                        className="w-10 h-10 object-contain shrink-0"
+                                    />
                                     <div className="flex-1">
                                         <span className="text-sm font-medium text-game-text">
                                             {player.name}
@@ -135,11 +121,14 @@ export function WaitingRoom() {
                                             </span>
                                         )}
                                     </div>
-                                    <div className="flex items-center gap-1">
-                                        {player.isHost && (
-                                            <span title="Host">👑</span>
-                                        )}
-                                    </div>
+                                    {player.isHost && (
+                                        <span
+                                            title="Host"
+                                            className="text-game-amber text-sm"
+                                        >
+                                            👑
+                                        </span>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -152,7 +141,6 @@ export function WaitingRoom() {
                                 Waiting for at least {minPlayers} players...
                             </p>
                         )}
-
                         {isHost ? (
                             <button
                                 onClick={handleStart}
@@ -166,7 +154,7 @@ export function WaitingRoom() {
                                 </span>
                             </button>
                         ) : (
-                            <div className="w-full border border-game-border text-game-muted text-center py-3 rounded-[4px] text-sm">
+                            <div className="w-full border border-game-border text-game-muted text-center py-3 rounded-[4px] text-sm font-heading tracking-wider">
                                 Waiting for host to start...
                             </div>
                         )}
