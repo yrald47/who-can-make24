@@ -1,4 +1,5 @@
 import type { Player } from "@who-can-make24/shared";
+import { avatarSrc } from "@who-can-make24/shared";
 
 interface PlayerSlotProps {
     player?: Player;
@@ -61,7 +62,12 @@ export function PlayerSlot({
         bg-white/10
         `}
             >
-                <span>{player.avatar}</span>
+                <span>
+                    <img
+                        src={avatarSrc(player.avatar)}
+                        alt={player.avatar}
+                        className="w-10 h-10 object-contain"
+                    /></span>
 
                 {/* Host crown */}
                 {player.isHost && (

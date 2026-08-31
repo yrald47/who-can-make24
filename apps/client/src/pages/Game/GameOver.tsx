@@ -169,6 +169,7 @@ export function GameOver() {
                                     <img
                                         src={avatarSrc(player.avatar)}
                                         alt={player.avatar}
+                                        className="w-10 h-10 object-contain"
                                     />
                                 </span>
                                 <div className="flex-1">
