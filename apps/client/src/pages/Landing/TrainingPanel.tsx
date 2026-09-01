@@ -663,7 +663,7 @@ export function TrainingPanel({ onBack }: TrainingPanelProps) {
                 <ScoreCard data={scoreCard} onClose={handleScoreCardClose} />
             )}
 
-            <div className="flex flex-col h-full gap-2 p-4 overflow-hidden">
+            <div className="flex flex-col h-full gap-2 p-4 overflow-y-auto">
                 {/* Header — back button + mode selector */}
                 <div className="flex items-center gap-2">
                     {onBack && (

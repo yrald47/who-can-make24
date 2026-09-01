@@ -139,7 +139,7 @@ export function Landing() {
                     {/* ── TWO COLUMN ── */}
                     <div className="w-full flex-1 min-h-0 flex flex-col md:flex-row gap-4">
                         {/* ── LEFT — Identity ── */}
-                        <div className="card-moco card-moco-cyan corner-accent-moco corner-accent-moco-cyan relative w-full md:w-96 shrink-0 flex flex-col h-full min-h-0">
+                        <div className="card-moco card-moco-cyan corner-accent-moco corner-accent-moco-cyan relative w-full md:w-96 shrink-0 flex flex-col min-h-0">
                             <div className="top-bar-moco top-bar-moco-cyan shrink-0">
                                 <span>Your Identity</span>
                             </div>
@@ -214,21 +214,24 @@ export function Landing() {
                                                     <strong className="text-game-cyan">
                                                         24
                                                     </strong>{" "}
-                                                    using <strong>+ − × ÷</strong>{" "}
-                                                    only. If you think you know the
-                                                    math,{" "}
+                                                    using{" "}
+                                                    <strong>+ − × ÷</strong>{" "}
+                                                    only. If you think you know
+                                                    the math,{" "}
                                                     <strong>
                                                         hit the buzzer fast!
                                                     </strong>
                                                 </p>
                                                 <p className="text-xs mt-1.5 leading-relaxed text-game-text/80">
-                                                    The slowest players become the{" "}
+                                                    The slowest players become
+                                                    the{" "}
                                                     <strong className="text-game-coral">
                                                         "Loser Candidates."
                                                     </strong>{" "}
-                                                    They point at you to prove your
-                                                    answer. Prove it right — you get
-                                                    the points. Fail it — they do.
+                                                    They point at you to prove
+                                                    your answer. Prove it right
+                                                    — you get the points. Fail
+                                                    it — they do.
                                                 </p>
                                             </div>
                                         </div>
@@ -256,7 +259,8 @@ export function Landing() {
                                             <div
                                                 className={`paper-stack ${isTrainingMobile ? "pointer-events-none" : "pointer-events-auto"}`}
                                                 style={{
-                                                    backfaceVisibility: "hidden",
+                                                    backfaceVisibility:
+                                                        "hidden",
                                                 }}
                                             >
                                                 <div className="paper-front p-4">
@@ -264,28 +268,30 @@ export function Landing() {
                                                         What is this? 🧠
                                                     </p>
                                                     <p className="text-sm leading-relaxed text-game-text/80">
-                                                        Turn 4 random numbers into{" "}
+                                                        Turn 4 random numbers
+                                                        into{" "}
                                                         <strong className="text-game-cyan">
                                                             24
                                                         </strong>{" "}
                                                         using{" "}
                                                         <strong>+ − × ÷</strong>{" "}
-                                                        only. If you think you know
-                                                        the math,{" "}
+                                                        only. If you think you
+                                                        know the math,{" "}
                                                         <strong>
                                                             hit the buzzer fast!
                                                         </strong>
                                                     </p>
                                                     <p className="text-sm mt-2 leading-relaxed text-game-text/80">
-                                                        The slowest players become
-                                                        the{" "}
+                                                        The slowest players
+                                                        become the{" "}
                                                         <strong className="text-game-coral">
                                                             "Loser Candidates."
                                                         </strong>{" "}
-                                                        They point at you to prove
-                                                        your answer. Prove it right
-                                                        — you get the points. Fail
-                                                        it — they do.
+                                                        They point at you to
+                                                        prove your answer. Prove
+                                                        it right — you get the
+                                                        points. Fail it — they
+                                                        do.
                                                     </p>
                                                     <button
                                                         onClick={() =>
@@ -295,29 +301,34 @@ export function Landing() {
                                                         }
                                                         className="mt-3 btn-moco btn-moco-ghost text-[0.7rem]"
                                                     >
-                                                        <span>🧠 Train Mode →</span>
+                                                        <span>
+                                                            🧠 Train Mode →
+                                                        </span>
                                                     </button>
                                                 </div>
                                             </div>
 
                                             {/* BACK */}
                                             <div
-                                                className={`absolute inset-0 bg-game-surface2 rounded-[4px] border border-game-border ${isTrainingMobile ? "pointer-events-auto" : "pointer-events-none"}`}
+                                                className={`absolute inset-0 bg-game-surface2 rounded-[4px] border border-game-border overflow-y-auto ${isTrainingMobile ? "pointer-events-auto" : "pointer-events-none"}`}
                                                 style={{
-                                                    backfaceVisibility: "hidden",
-                                                    transform: "rotateY(180deg)",
+                                                    backfaceVisibility:
+                                                        "hidden",
+                                                    transform:
+                                                        "rotateY(180deg)",
                                                 }}
                                             >
                                                 <TrainingPanel
                                                     onBack={() =>
-                                                        setIsTrainingMobile(false)
+                                                        setIsTrainingMobile(
+                                                            false,
+                                                        )
                                                     }
                                                 />
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-
                             </div>
 
                             {/* Mobile: Jump In bar */}
