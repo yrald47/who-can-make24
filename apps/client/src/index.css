@@ -73,15 +73,16 @@ h3,
     }
 
     .section-label {
-        font-family: "Cubao Free 2 SemCond", "Oswald", sans-serif;
-        font-size: 0.68rem;
+        font-family: "Lost Tumbler", "Oswald", sans-serif;
+        /* font-size: 0.68rem; */
         font-weight: 500;
         letter-spacing: 0.18em;
         text-transform: uppercase;
-        color: #38bdf8;
+        color: var(--color-game-cyan);
         display: flex;
         align-items: center;
         gap: 8px;
+        text-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
     }
     .section-label::after {
         content: "";
