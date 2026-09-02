@@ -1,4 +1,3 @@
-// apps/client/src/components/ErrorBoundary.tsx
 import React, { type ReactNode } from "react";
 
 interface Props {

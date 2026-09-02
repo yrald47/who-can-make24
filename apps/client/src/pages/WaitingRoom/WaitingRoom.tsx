@@ -3,11 +3,13 @@ import { GAME_CONSTANTS } from "@who-can-make24/shared";
 import { useSocket } from "../../hooks/useSocket";
 import { useRoomContext } from "../../context/useRoomContext";
 import { avatarSrc } from "@who-can-make24/shared";
+import { ConfirmModal } from "../../components/ConfirmModal/ConfirmModal";
 
 export function WaitingRoom() {
     const { currentRoom, leaveRoom } = useRoomContext();
     const { socket } = useSocket();
     const [copied, setCopied] = useState(false);
+    const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
     if (!currentRoom) return <div>currentRoom is null</div>;
 
@@ -34,6 +36,23 @@ export function WaitingRoom() {
 
     return (
         <div className="min-h-screen flex flex-col">
+            {showLeaveConfirm && (
+                <ConfirmModal
+                    message="Leave this room?"
+                    subMessage={
+                        isHost
+                            ? "You're the host — leaving will transfer host to the next player."
+                            : "You'll need the invite link to rejoin a private room."
+                    }
+                    confirmLabel="Leave"
+                    cancelLabel="Stay"
+                    onConfirm={() => {
+                        setShowLeaveConfirm(false);
+                        leaveRoom();
+                    }}
+                    onCancel={() => setShowLeaveConfirm(false)}
+                />
+            )}
             {/* Header */}
             <div className="bg-game-bg/90 backdrop-blur-game-sm border-b border-game-border px-6 py-3 flex items-center justify-between">
                 <div>
@@ -45,7 +64,7 @@ export function WaitingRoom() {
                     </p>
                 </div>
                 <button
-                    onClick={leaveRoom}
+                    onClick={() => setShowLeaveConfirm(true)}
                     className="text-game-muted hover:text-game-coral text-xs transition-colors font-heading tracking-wider"
                 >
                     ← LEAVE

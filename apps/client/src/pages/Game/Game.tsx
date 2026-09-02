@@ -8,6 +8,7 @@ import { ChatLog } from "./components/ChatLog";
 import { RulesModal } from "./components/RulesModal";
 import { PvpPhase } from "./components/phases/PvpPhase";
 import { avatarSrc } from "@who-can-make24/shared";
+import { ConfirmModal } from "../../components/ConfirmModal/ConfirmModal";
 
 type MobileTab = "game" | "players" | "chat";
 
@@ -30,6 +31,7 @@ export function Game() {
         const seen = localStorage.getItem(RULES_SEEN_KEY);
         return !seen;
     });
+    const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
     function handleCloseRules() {
         localStorage.setItem(RULES_SEEN_KEY, "1");
@@ -49,6 +51,25 @@ export function Game() {
     return (
         <div className="min-h-screen flex flex-col">
             {showRules && <RulesModal onClose={handleCloseRules} />}
+
+            {/* Leave Confirm */}
+            {showLeaveConfirm && (
+                <ConfirmModal
+                    message={isPvp ? "Leave the PVP match?" : "Leave the game?"}
+                    subMessage={
+                        isPvp
+                            ? "Leaving a PVP match counts as a forfeit. Your opponent wins."
+                            : "Your progress and score will be lost."
+                    }
+                    confirmLabel="Leave"
+                    cancelLabel="Stay"
+                    onConfirm={() => {
+                        setShowLeaveConfirm(false);
+                        leaveRoom();
+                    }}
+                    onCancel={() => setShowLeaveConfirm(false)}
+                />
+            )}
 
             {/* PVP Offer Modal */}
             {pvpOffer && (
@@ -88,15 +109,15 @@ export function Game() {
                                                 pvpVotes[p.id] === true
                                                     ? "text-game-green"
                                                     : pvpVotes[p.id] === false
-                                                      ? "text-game-coral"
-                                                      : "text-game-muted/50"
+                                                    ? "text-game-coral"
+                                                    : "text-game-muted/50"
                                             }
                                         >
                                             {pvpVotes[p.id] === true
                                                 ? "✓ Accept"
                                                 : pvpVotes[p.id] === false
-                                                  ? "✗ Decline"
-                                                  : "Waiting..."}
+                                                ? "✗ Decline"
+                                                : "Waiting..."}
                                         </span>
                                     </div>
                                 ))}
@@ -156,7 +177,7 @@ export function Game() {
                     RND {gameState.round}
                 </span>
                 <button
-                    onClick={leaveRoom}
+                    onClick={() => setShowLeaveConfirm(true)}
                     className="text-game-muted hover:text-game-coral text-xs transition-colors font-heading tracking-wider"
                 >
                     ← LEAVE
@@ -265,14 +286,14 @@ export function Game() {
                             tab === "game"
                                 ? "🎮"
                                 : tab === "players"
-                                  ? "👥"
-                                  : "💬";
+                                ? "👥"
+                                : "💬";
                         const label =
                             tab === "game"
                                 ? "Game"
                                 : tab === "players"
-                                  ? "Players"
-                                  : "Chat";
+                                ? "Players"
+                                : "Chat";
                         return (
                             <button
                                 key={tab}

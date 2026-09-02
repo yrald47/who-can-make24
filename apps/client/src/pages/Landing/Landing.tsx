@@ -139,7 +139,7 @@ export function Landing() {
                     {/* ── TWO COLUMN ── */}
                     <div className="w-full flex-1 min-h-0 flex flex-col md:flex-row gap-4">
                         {/* ── LEFT — Identity ── */}
-                        <div className="card-moco card-moco-cyan corner-accent-moco corner-accent-moco-cyan relative w-full md:w-96 shrink-0 flex flex-col min-h-0">
+                        <div className="card-moco card-moco-cyan corner-accent-moco corner-accent-moco-cyan relative w-full md:w-96 shrink-0 flex flex-col h-full min-h-0">
                             <div className="top-bar-moco top-bar-moco-cyan shrink-0">
                                 <span>Your Identity</span>
                             </div>
@@ -250,9 +250,9 @@ export function Landing() {
                                                     ? "rotateY(180deg)"
                                                     : "rotateY(0deg)",
                                                 minHeight: "200px",
-                                                height: isTrainingMobile
-                                                    ? "420px"
-                                                    : "auto",
+                                                // height: isTrainingMobile
+                                                //     ? "auto"
+                                                //     : "auto",
                                             }}
                                         >
                                             {/* FRONT */}
