@@ -3,6 +3,7 @@ import type { ProofStep } from "@who-can-make24/shared";
 import { useGameContext } from "../../../../context/useGameContext";
 import { useRoomContext } from "../../../../context/useRoomContext";
 import { useSocket } from "../../../../hooks/useSocket";
+import { avatarSrc } from "@who-can-make24/shared";
 
 const SUIT_COLOR: Record<string, string> = {
     spades: "text-game-text",
@@ -153,7 +154,13 @@ export function PvpPhase() {
                             }
                         `}
                     >
-                        <span>{player.avatar}</span>
+                        <span>
+                            <img
+                                src={avatarSrc(player.avatar)}
+                                alt={player.avatar}
+                                className="w-8 h-8 object-contain shrink-0"
+                            />
+                        </span>
                         <span className="font-heading tracking-wider">
                             {player.name}
                         </span>

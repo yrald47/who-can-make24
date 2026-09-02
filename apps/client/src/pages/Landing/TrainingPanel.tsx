@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { generateSolvableHand } from "../../lib/solver";
 import { createPortal } from "react-dom";
+import { ConfirmModal } from "../../components/ConfirmModal/ConfirmModal";
 
 // solver returns suit as symbol string — map to display
 type SuitSymbol = "♠" | "♥" | "♦" | "♣";
@@ -476,6 +477,11 @@ export function TrainingPanel({ onBack }: TrainingPanelProps) {
         return "Anonymous";
     });
 
+    const [confirmAction, setConfirmAction] = useState<
+        null | "back" | "mode" | "wild"
+    >(null);
+    const [pendingMode, setPendingMode] = useState<TrainingMode | null>(null);
+
     useEffect(() => {
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
@@ -514,13 +520,77 @@ export function TrainingPanel({ onBack }: TrainingPanelProps) {
         setStatus("playing");
     }
 
+    function handleBackClick() {
+        if (sessionActive) {
+            setConfirmAction("back");
+        } else {
+            onBack?.();
+        }
+    }
+
+    function handleWildToggle() {
+        if (sessionActive) {
+            setConfirmAction("wild");
+        } else {
+            setIsWild((w) => !w);
+            setSessionStarted(false);
+            setSessionActive(false);
+            setSolvedCount(0);
+            solvedRef.current = 0;
+            if (timerRef.current) clearInterval(timerRef.current);
+            newHand();
+        }
+    }
+
+    // function handleModeChange(m: TrainingMode) {
+    //     setMode(m);
+    //     setSessionStarted(false);
+    //     setSessionActive(false);
+    //     setSolvedCount(0);
+    //     solvedRef.current = 0;
+    //     if (timerRef.current) clearInterval(timerRef.current);
+    // }
+
     function handleModeChange(m: TrainingMode) {
+        if (sessionActive) {
+            setPendingMode(m);
+            setConfirmAction("mode");
+            return; // ← stop di sini kalau session aktif
+        }
+        // logika lama tetap di sini
         setMode(m);
         setSessionStarted(false);
         setSessionActive(false);
         setSolvedCount(0);
         solvedRef.current = 0;
         if (timerRef.current) clearInterval(timerRef.current);
+    }
+
+    function handleConfirm() {
+        if (timerRef.current) clearInterval(timerRef.current);
+        setSessionActive(false);
+        setSessionStarted(false);
+        setSolvedCount(0);
+        solvedRef.current = 0;
+
+        if (confirmAction === "back") {
+            setConfirmAction(null);
+            onBack?.();
+        } else if (confirmAction === "mode" && pendingMode) {
+            // logika lama handleModeChange
+            setMode(pendingMode);
+            setPendingMode(null);
+            setConfirmAction(null);
+        } else if (confirmAction === "wild") {
+            setIsWild((w) => !w);
+            newHand();
+            setConfirmAction(null);
+        }
+    }
+
+    function handleCancel() {
+        setConfirmAction(null);
+        setPendingMode(null);
     }
 
     function startSession() {
@@ -659,6 +729,25 @@ export function TrainingPanel({ onBack }: TrainingPanelProps) {
 
     return (
         <>
+            {confirmAction && (
+                <ConfirmModal
+                    message={
+                        confirmAction === "back"
+                            ? "Go back to rooms?"
+                            : confirmAction === "mode"
+                              ? `Switch to ${pendingMode === "no-timer" ? "Free" : pendingMode === "speed-run" ? "Speed" : "Attack"} mode?`
+                              : isWild
+                                ? "Switch to Normal deck?"
+                                : "Switch to Wild deck?"
+                    }
+                    subMessage="Your current session will be reset."
+                    confirmLabel="Yes, continue"
+                    cancelLabel="Keep playing"
+                    confirmVariant="amber"
+                    onConfirm={handleConfirm}
+                    onCancel={handleCancel}
+                />
+            )}
             {scoreCard && (
                 <ScoreCard data={scoreCard} onClose={handleScoreCardClose} />
             )}
@@ -668,7 +757,8 @@ export function TrainingPanel({ onBack }: TrainingPanelProps) {
                 <div className="flex items-center gap-2">
                     {onBack && (
                         <button
-                            onClick={onBack}
+                            // onClick={onBack}
+                            onClick={handleBackClick}
                             className="text-game-muted hover:text-game-text transition-colors text-xs font-heading tracking-wider shrink-0"
                         >
                             ← ROOMS
@@ -684,16 +774,17 @@ export function TrainingPanel({ onBack }: TrainingPanelProps) {
                                     : "Normal deck"}
                             </span>
                             <button
-                                onClick={() => {
-                                    setIsWild((w) => !w);
-                                    setSessionStarted(false);
-                                    setSessionActive(false);
-                                    setSolvedCount(0);
-                                    solvedRef.current = 0;
-                                    if (timerRef.current)
-                                        clearInterval(timerRef.current);
-                                    newHand(); // generate ulang dengan deck baru
-                                }}
+                                // onClick={() => {
+                                //     setIsWild((w) => !w);
+                                //     setSessionStarted(false);
+                                //     setSessionActive(false);
+                                //     setSolvedCount(0);
+                                //     solvedRef.current = 0;
+                                //     if (timerRef.current)
+                                //         clearInterval(timerRef.current);
+                                //     newHand(); // generate ulang dengan deck baru
+                                // }}
+                                onClick={handleWildToggle}
                                 className={`
             text-[0.65rem] font-heading tracking-widest px-3 py-1
             rounded-[2px] border transition-all
