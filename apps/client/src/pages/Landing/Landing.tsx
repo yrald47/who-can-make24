@@ -248,7 +248,7 @@ export function Landing() {
                                                     ? "rotateY(180deg)"
                                                     : "rotateY(0deg)",
                                                 minHeight: isTrainingMobile
-                                                    ? "480px"
+                                                    ? "360px"
                                                     : "300px",
                                                 // height: isTrainingMobile
                                                 //     ? "auto"
