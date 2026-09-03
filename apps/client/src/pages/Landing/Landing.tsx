@@ -112,25 +112,23 @@ export function Landing() {
                 <div className="w-full max-w-6xl mx-auto flex-1 min-h-0 flex flex-col gap-2">
                     {/* Support links */}
                     <div className="flex justify-center gap-3 shrink-0">
-                        <span className="text-game-muted/20 text-xs">
-                            Deploy locally ·
+                        <span className="text-game-muted text-xs">
+                            Deploy locally --
                         </span>
                         <a
                             href="https://saweria.co/rald"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-game-muted/40 hover:text-game-muted text-xs transition-colors"
+                            className="text-game-muted hover:text-game-muted text-xs transition-colors"
                         >
                             Support here
                         </a>
-                        <span className="text-game-muted/20 text-xs">
-                            · or ·
-                        </span>
+                        <span className="text-game-muted text-xs">or</span>
                         <a
                             href="https://trakteer.id/yudha_restu_alditya"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-game-muted/40 hover:text-game-muted text-xs transition-colors"
+                            className="text-game-muted hover:text-game-muted text-xs transition-colors"
                         >
                             Buy me a cendol ☕
                         </a>

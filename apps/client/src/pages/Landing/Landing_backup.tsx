@@ -130,7 +130,7 @@ export function Landing() {
 
             {/* <Footer className="md:hidden" /> */}
             <div className="text-center py-3 px-4">
-                <p className="text-white/30 text-xs">
+                <p className="text-white text-xs">
                     ⚠️ Beta — still in testing. Deploy locally{" "}
                     <a
                         href="https://saweria.co/rald"
@@ -145,7 +145,7 @@ export function Landing() {
                         href="https://trakteer.id/yudha_restu_alditya"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-white/50 hover:text-white/80 underline transition-colors"
+                        className="text-white hover:text-white/80 underline transition-colors"
                     >
                         Buy me a cendol ☕
                     </a>
