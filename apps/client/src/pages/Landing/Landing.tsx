@@ -135,9 +135,9 @@ export function Landing() {
                     </div>
 
                     {/* ── TWO COLUMN ── */}
-                    <div className="w-full flex-1 min-h-0 flex flex-col md:flex-row gap-4">
+                    <div className="w-full flex-1 min-h-0 flex flex-col md:flex-row gap-4 overflow-y-auto pb-9">
                         {/* ── LEFT — Identity ── */}
-                        <div className="card-moco card-moco-cyan corner-accent-moco corner-accent-moco-cyan relative w-full md:w-96 shrink-0 flex flex-col min-h-0 max-h-[calc(100dvh-120px)] overflow-y-auto md:max-h-none md:overflow-visible">
+                        <div className="card-moco card-moco-cyan corner-accent-moco corner-accent-moco-cyan relative w-full md:w-96 shrink-0 flex flex-col min-h-0 max-h-[calc(100dvh-120px)] md:max-h-none md:overflow-visible">
                             <div className="top-bar-moco top-bar-moco-cyan shrink-0">
                                 <span>Your Identity</span>
                             </div>
@@ -250,6 +250,7 @@ export function Landing() {
                                                 minHeight: isTrainingMobile
                                                     ? "360px"
                                                     : "300px",
+                                                // minHeight: "300px",
                                                 // height: isTrainingMobile
                                                 //     ? "auto"
                                                 //     : "auto",
