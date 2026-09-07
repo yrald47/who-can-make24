@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { generateSolvableHand } from "../../lib/solver";
 import { createPortal } from "react-dom";
+import html2canvas from "html2canvas";
 import { ConfirmModal } from "../../components/ConfirmModal/ConfirmModal";
 
 // solver returns suit as symbol string — map to display
@@ -68,6 +69,8 @@ function ScoreCard({
     data: ScoreCardData;
     onClose: () => void;
 }) {
+    const cardRef = useRef<HTMLDivElement>(null);
+    const [sharing, setSharing] = useState(false);
     const isSpeedRun = data.mode === "speed-run";
     const mainStat = isSpeedRun
         ? formatTime(data.totalTime ?? 0)
@@ -79,11 +82,34 @@ function ScoreCard({
     const modeColor = isSpeedRun ? "#38bdf8" : "#fbbf24";
     const accentColor = isSpeedRun ? "#a855f7" : "#f87171";
 
+    async function captureAndShare() {
+        if (!cardRef.current) return;
+        setSharing(true);
+        try {
+            const canvas = await html2canvas(cardRef.current, { backgroundColor: null, scale: 2 });
+            const blob = await new Promise<Blob>(resolve => canvas.toBlob(b => resolve(b!), "image/png"));
+            const file = new File([blob], "wcm24-score.png", { type: "image/png" });
+            if (navigator.canShare?.({ files: [file] })) {
+                await navigator.share({ files: [file], title: "Who Can Make24?" });
+            } else {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "wcm24-score.png"; a.click();
+                URL.revokeObjectURL(url);
+            }
+        } catch (err) {
+            console.error("Share failed:", err);
+        } finally {
+            setSharing(false);
+        }
+    }
+
     return createPortal(
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-100 p-4">
             <div className="flex flex-col items-center gap-4 w-full max-w-xs pb-20 md:pb-4">
                 {/* Card */}
                 <div
+                    ref={cardRef}
                     style={{
                         width: "100%",
                         aspectRatio: "9/16",
@@ -328,15 +354,15 @@ function ScoreCard({
                         <span>← Back</span>
                     </button>
                     <button
-                        disabled
-                        className="btn-moco btn-moco-cyan flex-1 opacity-30 cursor-not-allowed"
-                        title="Login required"
+                        onClick={captureAndShare}
+                        disabled={sharing}
+                        className="btn-moco btn-moco-cyan flex-1 disabled:opacity-50"
                     >
-                        <span>💾 Save History</span>
+                        <span>{sharing ? "Processing..." : "📤 Share"}</span>
                     </button>
                 </div>
                 <p className="text-game-muted/40 text-xs text-center -mt-2">
-                    Screenshot to share · History requires Google login
+                    History requires Google login
                 </p>
             </div>
         </div>,
@@ -752,7 +778,7 @@ export function TrainingPanel({ onBack }: TrainingPanelProps) {
                 <ScoreCard data={scoreCard} onClose={handleScoreCardClose} />
             )}
 
-            <div className="flex flex-col h-full gap-2 p-4 pb-16">
+            <div className="flex flex-col h-full gap-2 p-4">
                 {/* Header — back button + mode selector */}
                 <div className="flex items-center gap-2">
                     {onBack && (
