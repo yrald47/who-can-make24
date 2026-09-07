@@ -1,30 +1,24 @@
+import { lazy, Suspense } from "react";
 import { useRoomContext } from "./context/useRoomContext";
 import { useGameContext } from "./context/useGameContext";
 import { Landing } from "./pages/Landing/Landing";
-import { WaitingRoom } from "./pages/WaitingRoom/WaitingRoom";
-import { Game } from "./pages/Game/Game";
-import { GameOver } from "./pages/Game/GameOver";
 import { Toaster } from "sonner";
+
+const WaitingRoom = lazy(() =>
+    import("./pages/WaitingRoom/WaitingRoom").then((m) => ({
+        default: m.WaitingRoom,
+    })),
+);
+const Game = lazy(() =>
+    import("./pages/Game/Game").then((m) => ({ default: m.Game })),
+);
+const GameOver = lazy(() =>
+    import("./pages/Game/GameOver").then((m) => ({ default: m.GameOver })),
+);
 
 function App() {
     const { currentRoom } = useRoomContext();
-    const {gameState, isGameOver, pvpCoward} = useGameContext();
-
-    // if (currentRoom?.status === "playing" && isGameOver) {
-    //     return <GameOver />;
-    // }
-    
-    // if (currentRoom?.status === "playing" && gameState) {
-    //     return (
-    //         <Game />
-    //     );
-    // }
-
-    // if (currentRoom?.status === "waiting") {
-    //     return <WaitingRoom />;
-    // }
-
-    // return <Landing />;
+    const { gameState, isGameOver, pvpCoward } = useGameContext();
 
     let content;
     if ((currentRoom?.status === "playing" && isGameOver) || pvpCoward) {
@@ -45,35 +39,11 @@ function App() {
                 richColors
                 closeButton
             />
-            {/* Background image */}
             <div className="bg-[url('/bg.svg')] fixed inset-0 bg-cover bg-center -z-10" />
-            {/* <div className="fixed inset-0 bg-[url(/bg.svg)] bg-cover bg-center -z-10" /> */}
-            {/* <div
-                className="fixed inset-0 bg-cover bg-center"
-                style={{
-                    backgroundImage: "url('http://localhost:5173/bg.svg')",
-                }}
-            /> */}
-            {/* Blue overlay */}
             <div className="fixed inset-0 bg-(--color-accent-coral)/30 -z-10" />
-            {content}
+            <Suspense fallback={null}>{content}</Suspense>
         </div>
     );
-
-    // return (
-    //     <>
-    //         {/* <div
-    //             className="fixed inset-0 bg-cover bg-center -z-10"
-    //             style={{ backgroundImage: "url('/bg.svg')" }}
-    //         /> */}
-    //         <img
-    //             src="/bg.svg"
-    //             className="fixed inset-0 -z-10 w-full h-full object-cover"
-    //         />
-    //         <div className="fixed inset-0 bg-red-600/80 -z-10" />
-    //         <div className="relative min-h-screen">{content}</div>
-    //     </>
-    // );
 }
 
 export default App;
