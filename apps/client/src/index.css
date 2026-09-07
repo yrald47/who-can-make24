@@ -24,10 +24,12 @@
 
 @font-face {
     font-family: "Lost Tumbler";
-    src: url("/fonts/LostTumbler.ttf") format("truetype"); /* Update path as needed */
+    src: url("/fonts/LostTumbler.ttf") format("truetype");
     font-weight: normal;
     font-style: normal;
     font-display: swap;
+    size-adjust: 92%;
+    ascent-override: 88%;
 }
 
 @theme {

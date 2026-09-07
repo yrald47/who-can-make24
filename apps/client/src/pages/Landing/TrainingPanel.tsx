@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { generateSolvableHand } from "../../lib/solver";
 import { createPortal } from "react-dom";
-import html2canvas from "html2canvas";
+// import html2canvas from "html2canvas";
 import { ConfirmModal } from "../../components/ConfirmModal/ConfirmModal";
 
 // solver returns suit as symbol string — map to display
@@ -86,6 +86,7 @@ function ScoreCard({
         if (!cardRef.current) return;
         setSharing(true);
         try {
+            const { default: html2canvas } = await import("html2canvas");
             const canvas = await html2canvas(cardRef.current, { backgroundColor: null, scale: 2 });
             const blob = await new Promise<Blob>(resolve => canvas.toBlob(b => resolve(b!), "image/png"));
             const file = new File([blob], "wcm24-score.png", { type: "image/png" });
