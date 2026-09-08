@@ -3,7 +3,7 @@
 @import url("https://db.onlinewebfonts.com/c/f34cb9fa2f0ec395f6393ff6e1924554?family=Cubao+Free+2+SemCond");
 @import "tailwindcss";
 
-@font-face {
+/* @font-face {
     font-family: "Cubao Free 2 SemCond";
     src: url("https://db.onlinewebfonts.com/t/f34cb9fa2f0ec395f6393ff6e1924554.eot");
     src:
@@ -20,7 +20,7 @@
     font-weight: normal;
     font-style: normal;
     font-display: swap;
-}
+} */
 
 @font-face {
     font-family: "Lost Tumbler";
@@ -44,7 +44,7 @@
     --color-game-coral: #f87171;
     --color-game-amber: #fbbf24;
     --font-heading:
-        "Lost Tumbler", "Cubao Free 2 SemCond", "Good Timing", "Oswald",
+        "Lost Tumbler", "Good Timing", "Oswald",
         sans-serif;
     --font-body: "Inter", sans-serif;
     --color-game-violet: #a855f7;
@@ -98,7 +98,7 @@ h3,
     }
 
     .field-label {
-        font-family: "Cubao Free 2 SemCond", "Oswald", sans-serif;
+        font-family: "Oswald", sans-serif;
         font-size: 0.65rem;
         letter-spacing: 0.12em;
         text-transform: uppercase;
@@ -211,7 +211,7 @@ h3,
         z-index: 1;
     }
     .paper-label {
-        font-family: "Cubao Free 2 SemCond", "Oswald", sans-serif;
+        font-family: "Oswald", sans-serif;
         font-size: 0.65rem;
         font-weight: 600;
         letter-spacing: 0.18em;
