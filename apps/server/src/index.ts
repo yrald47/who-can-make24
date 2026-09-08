@@ -34,7 +34,9 @@ const httpServer = createServer();
 // Socket.io di atas HTTP server
 const io = new Server(httpServer, {
     cors: {
-        origin: "*",
+        origin: process.env.CLIENT_ORIGIN
+            ? [process.env.CLIENT_ORIGIN, "http://localhost:5173"]
+            : ["https://whocanmake24.my.id", "http://localhost:5173"],
         methods: ["GET", "POST"],
     },
     transports: ["websocket", "polling"],

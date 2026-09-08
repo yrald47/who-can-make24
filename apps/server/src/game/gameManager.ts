@@ -129,6 +129,46 @@ export function castPvpVote(
 }
 
 // Submit PVP proof — siapa submit 24 duluan menang ronde
+const VALID_OPERATORS = new Set(["+", "-", "*", "/"]);
+const EPSILON = 1e-9;
+
+function validateProof(steps: ProofStep[], currentCards: Card[]): boolean {
+    if (steps.length !== 3) return false;
+
+    const pool: number[] = currentCards.map((c) => c.value);
+
+    for (const step of steps) {
+        const { a, b, operator, result } = step;
+
+        if (!VALID_OPERATORS.has(operator)) return false;
+
+        const idxA = pool.findIndex((v) => Math.abs(v - a) < EPSILON);
+        if (idxA === -1) return false;
+        pool.splice(idxA, 1);
+
+        const idxB = pool.findIndex((v) => Math.abs(v - b) < EPSILON);
+        if (idxB === -1) return false;
+        pool.splice(idxB, 1);
+
+        let computed: number;
+        if (operator === "+") computed = a + b;
+        else if (operator === "-") computed = a - b;
+        else if (operator === "*") computed = a * b;
+        else {
+            if (Math.abs(b) < EPSILON) return false;
+            computed = a / b;
+        }
+
+        if (Math.abs(computed - result) > EPSILON) return false;
+        pool.push(computed);
+    }
+
+    return (
+        pool.length === 1 &&
+        Math.abs(pool[0]! - GAME_CONSTANTS.TARGET_NUMBER) < EPSILON
+    );
+}
+
 export function submitPvpProof(
     roomId: string,
     playerId: string,
@@ -246,6 +286,24 @@ export function setPointingTarget(
     state.pointingTargets[candidateId] = targetId;
 }
 
+// export function submitProof(
+//     roomId: string,
+//     playerId: string,
+//     steps: ProofStep[],
+// ): { isCorrect: boolean; state: GameState } | null {
+//     const state = gameStates.get(roomId);
+//     if (!state || state.phase !== "proof") return null;
+
+//     const lastResult = steps[steps.length - 1]?.result;
+//     const isCorrect =
+//         state.timer > 0 && lastResult === GAME_CONSTANTS.TARGET_NUMBER;
+
+//     console.log("lastResult:", lastResult, "isCorrect:", isCorrect);
+
+//     state.proofs.push({ playerId, steps, isCorrect, submittedAt: Date.now() });
+//     return { isCorrect, state };
+// }
+
 export function submitProof(
     roomId: string,
     playerId: string,
@@ -254,11 +312,10 @@ export function submitProof(
     const state = gameStates.get(roomId);
     if (!state || state.phase !== "proof") return null;
 
-    const lastResult = steps[steps.length - 1]?.result;
-    const isCorrect =
-        state.timer > 0 && lastResult === GAME_CONSTANTS.TARGET_NUMBER;
+    if (state.proofs.some((p) => p.playerId === playerId)) return null;
 
-    console.log("lastResult:", lastResult, "isCorrect:", isCorrect);
+    const isCorrect =
+        state.timer > 0 && validateProof(steps, state.currentCards);
 
     state.proofs.push({ playerId, steps, isCorrect, submittedAt: Date.now() });
     return { isCorrect, state };

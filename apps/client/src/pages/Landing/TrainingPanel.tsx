@@ -461,9 +461,21 @@ export function TrainingPanel({ onBack }: TrainingPanelProps) {
         return generateSolvableHand(isWild) as TrainingCard[];
     }
 
-    const [hand, setHand] = useState<TrainingCard[]>(() => freshHand());
+    // const [hand, setHand] = useState<TrainingCard[]>(() => freshHand());
+    // const [available, setAvailable] = useState<AvailCard[]>(() =>
+    //     freshHand().map((c, i) => ({
+    //         value: c.value,
+    //         label: c.rank,
+    //         id: i,
+    //         suit: c.suit,
+    //     })),
+    // );
+
+    const [hand, setHand] = useState<TrainingCard[]>(
+        generateSolvableHand(isWild) as TrainingCard[],
+    );
     const [available, setAvailable] = useState<AvailCard[]>(() =>
-        freshHand().map((c, i) => ({
+        hand.map((c, i) => ({
             value: c.value,
             label: c.rank,
             id: i,

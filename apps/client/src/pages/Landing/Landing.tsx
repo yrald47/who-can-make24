@@ -244,9 +244,15 @@ export function Landing() {
                                             className="relative transition-all duration-500"
                                             style={{
                                                 transformStyle: "preserve-3d",
+                                                WebkitTransformStyle:
+                                                    "preserve-3d",
                                                 transform: isTrainingMobile
                                                     ? "rotateY(180deg)"
                                                     : "rotateY(0deg)",
+                                                WebkitTransform:
+                                                    isTrainingMobile
+                                                        ? "rotateY(180deg)"
+                                                        : "rotateY(0deg)",
                                                 minHeight: isTrainingMobile
                                                     ? "360px"
                                                     : "300px",
@@ -261,6 +267,8 @@ export function Landing() {
                                                 className={`paper-stack ${isTrainingMobile ? "pointer-events-none" : "pointer-events-auto"}`}
                                                 style={{
                                                     backfaceVisibility:
+                                                        "hidden",
+                                                    WebkitBackfaceVisibility:
                                                         "hidden",
                                                 }}
                                             >
@@ -315,7 +323,11 @@ export function Landing() {
                                                 style={{
                                                     backfaceVisibility:
                                                         "hidden",
+                                                    WebkitBackfaceVisibility:
+                                                        "hidden",
                                                     transform:
+                                                        "rotateY(180deg)",
+                                                    WebkitTransform:
                                                         "rotateY(180deg)",
                                                 }}
                                             >
