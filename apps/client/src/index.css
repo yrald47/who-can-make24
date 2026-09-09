@@ -110,6 +110,11 @@ h3,
         position: relative;
         padding-bottom: 6px;
     }
+
+    .paper-stack.is-flipping::before,
+    .paper-stack.is-flipping::after {
+        display: none;
+    }
     /* Layer 3 — paling belakang */
     .paper-stack::before {
         content: "";

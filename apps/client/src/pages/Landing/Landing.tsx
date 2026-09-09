@@ -88,7 +88,7 @@ export function Landing() {
     return (
         <div className="h-screen h-[100dvh] flex flex-col overflow-hidden">
             {/* ── HEADER ── */}
-            <header className="relative z-10 bg-game-bg/80 backdrop-blur-game-sm border-b border-game-border/40 px-6 pt-5 pb-3 shrink-0 flex items-start justify-between">
+            <header className="sticky top-0 z-10 bg-game-bg/80 backdrop-blur-game-sm border-b border-game-border/40 px-6 pt-5 pb-3 shrink-0 flex items-start justify-between">
                 <div>
                     <h1 className="font-heading font-bold text-2xl md:text-3xl text-game-text tracking-wide leading-none">
                         WHO CAN MAKE<span className="text-game-cyan">24</span>?
@@ -137,7 +137,7 @@ export function Landing() {
                     {/* ── TWO COLUMN ── */}
                     <div className="w-full flex-1 min-h-0 flex flex-col md:flex-row gap-4 overflow-y-auto pb-9">
                         {/* ── LEFT — Identity ── */}
-                        <div className="card-moco card-moco-cyan corner-accent-moco corner-accent-moco-cyan relative w-full md:w-96 shrink-0 flex flex-col min-h-0 max-h-[calc(100dvh-120px)] md:max-h-none md:overflow-visible">
+                        <div className="card-moco card-moco-cyan corner-accent-moco corner-accent-moco-cyan relative w-full md:w-96 shrink-0 flex flex-col min-h-0 max-h-[calc(100svh-140px)] overflow-y-auto md:max-h-none md:overflow-visible">
                             <div className="top-bar-moco top-bar-moco-cyan shrink-0">
                                 <span>Your Identity</span>
                             </div>
@@ -264,7 +264,7 @@ export function Landing() {
                                         >
                                             {/* FRONT */}
                                             <div
-                                                className={`paper-stack ${isTrainingMobile ? "pointer-events-none" : "pointer-events-auto"}`}
+                                                className={`paper-stack ${isTrainingMobile ? "is-flipping pointer-events-none" : "pointer-events-auto"}`}
                                                 style={{
                                                     backfaceVisibility:
                                                         "hidden",
