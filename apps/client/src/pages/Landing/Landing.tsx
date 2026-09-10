@@ -137,7 +137,8 @@ export function Landing() {
                     {/* ── TWO COLUMN ── */}
                     <div className="w-full flex-1 min-h-0 flex flex-col md:flex-row gap-4 overflow-y-auto pb-9">
                         {/* ── LEFT — Identity ── */}
-                        <div className="card-moco card-moco-cyan corner-accent-moco corner-accent-moco-cyan relative w-full md:w-96 shrink-0 flex flex-col min-h-0 max-h-[calc(100svh-140px)] overflow-y-auto md:max-h-none md:overflow-visible">
+                        {/* <div className="card-moco card-moco-cyan corner-accent-moco corner-accent-moco-cyan relative w-full md:w-96 shrink-0 flex flex-col min-h-0 max-h-[calc(100svh-140px)] overflow-y-auto md:max-h-none md:overflow-visible"> */}
+                        <div className="card-moco card-moco-cyan corner-accent-moco corner-accent-moco-cyan relative w-full md:w-96 shrink-0 flex flex-col">
                             <div className="top-bar-moco top-bar-moco-cyan shrink-0">
                                 <span>Your Identity</span>
                             </div>
@@ -254,12 +255,8 @@ export function Landing() {
                                                         ? "rotateY(180deg)"
                                                         : "rotateY(0deg)",
                                                 minHeight: isTrainingMobile
-                                                    ? "360px"
+                                                    ? "600px"
                                                     : "300px",
-                                                // minHeight: "300px",
-                                                // height: isTrainingMobile
-                                                //     ? "auto"
-                                                //     : "auto",
                                             }}
                                         >
                                             {/* FRONT */}
@@ -319,7 +316,7 @@ export function Landing() {
 
                                             {/* BACK */}
                                             <div
-                                                className={`absolute inset-0 bg-game-surface2 rounded-[4px] border border-game-border overflow-y-auto pb-16 ${isTrainingMobile ? "pointer-events-auto" : "pointer-events-none"}`}
+                                                className={`absolute inset-0 bg-game-surface2 rounded-[4px] border border-game-border pb-16 ${isTrainingMobile ? "pointer-events-auto" : "pointer-events-none"}`}
                                                 style={{
                                                     backfaceVisibility:
                                                         "hidden",
